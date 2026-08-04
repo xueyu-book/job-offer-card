@@ -1,0 +1,39 @@
+import { isMobileDevice } from './device'
+
+/** PC：1920 设计稿，192px = 1rem */
+export const PC_DESIGN_WIDTH = 1920
+export const PC_DESIGN_HEIGHT = 1080
+export const PC_ROOT_VALUE = 192
+
+/** 移动端：375 设计稿，37.5px = 1rem */
+export const MOBILE_DESIGN_WIDTH = 375
+export const MOBILE_ROOT_VALUE = 37.5
+
+export function pxToRem(px, device = getDeviceTypeForRem()) {
+  const root = device === 'mobile' ? MOBILE_ROOT_VALUE : PC_ROOT_VALUE
+  return `${px / root}rem`
+}
+
+function getDeviceTypeForRem() {
+  return isMobileDevice() ? 'mobile' : 'web'
+}
+
+function setRootFontSize() {
+  const { clientWidth, clientHeight } = document.documentElement
+
+  if (isMobileDevice()) {
+    const scale = clientWidth / MOBILE_DESIGN_WIDTH
+    document.documentElement.style.fontSize = `${MOBILE_ROOT_VALUE * scale}px`
+    return
+  }
+
+  const scale = Math.min(
+    clientWidth / PC_DESIGN_WIDTH,
+    clientHeight / PC_DESIGN_HEIGHT
+  )
+  document.documentElement.style.fontSize = `${PC_ROOT_VALUE * scale}px`
+}
+
+setRootFontSize()
+window.addEventListener('resize', setRootFontSize)
+window.addEventListener('orientationchange', setRootFontSize)
