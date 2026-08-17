@@ -44,25 +44,12 @@ import { computed, inject, onMounted, onUnmounted, ref, watch } from 'vue'
 import { clamp, round } from '@/utils/math'
 import { useSpring } from '@/composables/useSpring'
 import cardSfx from '@/assets/audio/card.mp3'
-import { playHtmlAudio, registerHtmlAudio } from '@/utils/audio'
-
-let cardAudio = null
-
-function ensureCardAudio() {
-  if (cardAudio) return cardAudio
-
-  cardAudio = new Audio(cardSfx)
-  cardAudio.preload = 'auto'
-  cardAudio.load()
-  return registerHtmlAudio(cardAudio)
-}
+import { getHtmlSfx, playHtmlAudio } from '@/utils/audio'
 
 function playCardAudio() {
   if (muted.value) return
-  playHtmlAudio(ensureCardAudio())
+  playHtmlAudio(getHtmlSfx(cardSfx))
 }
-
-ensureCardAudio()
 
 const props = defineProps({
   id: { type: [String, Number], required: true },
@@ -272,10 +259,6 @@ watch(active, (isActive) => {
   } else {
     retreat()
   }
-})
-
-watch(muted, (isMuted) => {
-  if (isMuted) cardAudio?.pause()
 })
 
 onMounted(() => {

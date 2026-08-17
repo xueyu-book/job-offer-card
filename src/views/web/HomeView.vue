@@ -9,6 +9,7 @@
     <button
       type="button"
       class="web-home__mute"
+      :disabled="activeCardId !== null"
       :aria-label="muted ? '开启声音' : '静音'"
       :aria-pressed="muted"
       @click="toggleMute"
@@ -83,7 +84,7 @@ import tabIcon5Active from '@/assets/images/web/tabbar/5_active.svg'
 import navSfx from '@/assets/audio/nav.wav'
 import iconPlay from '@/assets/images/web/home/icon_play.svg'
 import iconMute from '@/assets/images/web/home/icon_mute.svg'
-import { playHtmlAudio, registerHtmlAudio, requestAudioPermission, requestMicrophonePermission } from '@/utils/audio'
+import { getHtmlSfx, pauseAllHtmlAudio, playHtmlAudio, readMutedPreference, requestAudioPermission, requestMicrophonePermission, writeMutedPreference } from '@/utils/audio'
 
 const TAB_FLASH_COUNT = 2
 const TAB_FRAME_MS = 160
@@ -91,7 +92,7 @@ const TAB_FRAME_MS = 160
 const activeCardId = ref(null)
 const activeTab = ref(1)
 const splashDone = ref(false)
-const muted = ref(true)
+const muted = ref(readMutedPreference())
 
 provide('splashDone', splashDone)
 provide('muted', muted)
@@ -163,11 +164,8 @@ let navAudio = null
 
 function ensureNavAudio() {
   if (navAudio) return navAudio
-
-  navAudio = new Audio(navSfx)
-  navAudio.preload = 'auto'
-  navAudio.load()
-  return registerHtmlAudio(navAudio)
+  navAudio = getHtmlSfx(navSfx)
+  return navAudio
 }
 
 function playNavAudio() {
@@ -180,11 +178,13 @@ function toggleMute() {
     requestAudioPermission()
     requestMicrophonePermission()
     muted.value = false
+    writeMutedPreference(false)
     return
   }
 
   muted.value = true
-  navAudio?.pause()
+  writeMutedPreference(true)
+  pauseAllHtmlAudio()
 }
 
 ensureNavAudio()
@@ -279,6 +279,11 @@ onUnmounted(() => {
     display: block;
     width: 100%;
     height: 100%;
+  }
+
+  &:disabled {
+    pointer-events: none;
+    cursor: default;
   }
 }
 
