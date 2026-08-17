@@ -40,7 +40,6 @@
             :id="card.id"
             :serial="card.serial"
             :price="card.price"
-            :glow="card.glow"
           />
         </div>
       </div>
@@ -68,11 +67,14 @@ const CARD_REVEAL_DURATION_MS = 750
 
 const activeCardId = inject('activeCardId', ref(null))
 const splashDone = inject('splashDone', ref(true))
+const muted = inject('muted', ref(true))
 const scrollerRef = ref(null)
 const wallSliding = ref(false)
 const wallSettled = ref(false)
 const cardsRevealed = ref(false)
 const cardsSettled = ref(false)
+
+const AUDIO_UNLOCK_EVENTS = ['pointerdown', 'touchstart', 'keydown']
 
 let snapTimer = null
 let programmatic = false
@@ -80,7 +82,13 @@ let programmaticTimer = null
 let wallSettleTimer = null
 let cardSettleTimer = null
 let revealFrame = null
-let wallAudio = null
+let wallAudioContext = null
+let wallAudioBuffer = null
+let wallAudioSource = null
+let wallSoundPlaying = false
+let wallSoundStarted = false
+let pendingWallSound = false
+let audioUnlockBound = false
 
 function getCardItemStyle(index) {
   const row = Math.floor(index / CARD_GRID_COLUMNS)
@@ -202,19 +210,137 @@ function scrollTwoRows() {
   scrollByRows(2)
 }
 
-function playWallAudio() {
-  try {
-    wallAudio?.pause()
-    wallAudio = new Audio(wallSfx)
-    wallAudio.play().catch(() => {})
-  } catch {
-    // 自动播放被拦截时忽略
+function getWallAudioContext() {
+  if (wallAudioContext) return wallAudioContext
+
+  const AudioCtx = window.AudioContext || window.webkitAudioContext
+  if (!AudioCtx) return null
+
+  wallAudioContext = new AudioCtx()
+  return wallAudioContext
+}
+
+function loadWallAudioBuffer() {
+  const ctx = getWallAudioContext()
+  if (!ctx || wallAudioBuffer) return
+
+  fetch(wallSfx)
+    .then((response) => response.arrayBuffer())
+    .then((data) => ctx.decodeAudioData(data))
+    .then((buffer) => {
+      wallAudioBuffer = buffer
+      if (pendingWallSound) playWallAudio()
+    })
+    .catch(() => {})
+}
+
+function markWallSoundPending() {
+  pendingWallSound = !wallSettled.value
+}
+
+function unlockWallAudio() {
+  const ctx = getWallAudioContext()
+  if (!ctx || wallSoundPlaying) return
+
+  if (ctx.state === 'suspended') {
+    ctx.resume().catch(() => {})
   }
+
+  try {
+    const silent = ctx.createBuffer(1, 1, ctx.sampleRate || 22050)
+    const source = ctx.createBufferSource()
+    source.buffer = silent
+    source.connect(ctx.destination)
+    source.start(0)
+  } catch {
+    // iOS 解锁失败时等下次手势再试
+  }
+}
+
+function stopWallAudio() {
+  if (!wallAudioSource) return
+
+  try {
+    wallAudioSource.stop()
+  } catch {
+    // 已结束的 source 再 stop 会抛错
+  }
+  wallAudioSource.disconnect()
+  wallAudioSource = null
+}
+
+function playWallAudio() {
+  if (muted.value) return
+
+  const ctx = getWallAudioContext()
+  if (!ctx || !wallAudioBuffer) {
+    markWallSoundPending()
+    return
+  }
+
+  if (ctx.state !== 'running') {
+    markWallSoundPending()
+    ctx.resume().then(() => {
+      if (pendingWallSound && ctx.state === 'running') playWallAudio()
+    }).catch(markWallSoundPending)
+    return
+  }
+
+  try {
+    stopWallAudio()
+    const source = ctx.createBufferSource()
+    source.buffer = wallAudioBuffer
+    source.connect(ctx.destination)
+    source.onended = () => {
+      if (wallAudioSource === source) wallAudioSource = null
+      wallSoundPlaying = false
+    }
+    source.start(0)
+    wallAudioSource = source
+    wallSoundPlaying = true
+    wallSoundStarted = true
+    pendingWallSound = false
+  } catch {
+    wallSoundPlaying = false
+    markWallSoundPending()
+  }
+}
+
+function onAudioUnlockGesture() {
+  if (wallSettled.value) return
+
+  unlockWallAudio()
+
+  if (pendingWallSound || (splashDone.value && !wallSoundStarted)) {
+    playWallAudio()
+  }
+}
+
+function bindAudioUnlock() {
+  if (audioUnlockBound || typeof window === 'undefined') return
+
+  audioUnlockBound = true
+  AUDIO_UNLOCK_EVENTS.forEach((eventName) => {
+    window.addEventListener(eventName, onAudioUnlockGesture, {
+      capture: true,
+      passive: true
+    })
+  })
+}
+
+function unbindAudioUnlock() {
+  if (!audioUnlockBound || typeof window === 'undefined') return
+
+  audioUnlockBound = false
+  AUDIO_UNLOCK_EVENTS.forEach((eventName) => {
+    window.removeEventListener(eventName, onAudioUnlockGesture, { capture: true })
+  })
 }
 
 function startWallSplit() {
   if (wallSliding.value || wallSettled.value) return
 
+  wallSoundStarted = false
   playWallAudio()
   triggerCardsReveal()
   requestAnimationFrame(() => {
@@ -222,11 +348,15 @@ function startWallSplit() {
       wallSliding.value = true
       wallSettleTimer = window.setTimeout(() => {
         wallSettled.value = true
+        pendingWallSound = false
         wallSettleTimer = null
       }, WALL_SLIDE_DURATION_MS)
     })
   })
 }
+
+loadWallAudioBuffer()
+bindAudioUnlock()
 
 defineExpose({
   scrollByRows,
@@ -241,6 +371,19 @@ watch(
   { immediate: true }
 )
 
+watch(muted, (isMuted) => {
+  if (isMuted) {
+    stopWallAudio()
+    wallSoundPlaying = false
+    pendingWallSound = false
+    return
+  }
+
+  if (splashDone.value && !wallSettled.value && !wallSoundStarted) {
+    playWallAudio()
+  }
+})
+
 onMounted(() => {
   scrollerRef.value?.addEventListener('scrollend', onScrollEnd)
 })
@@ -253,10 +396,16 @@ onUnmounted(() => {
     window.clearTimeout(wallSettleTimer)
   }
   resetCardsReveal()
-  if (wallAudio) {
-    wallAudio.pause()
-    wallAudio = null
+  unbindAudioUnlock()
+  pendingWallSound = false
+  wallSoundPlaying = false
+  wallSoundStarted = false
+  stopWallAudio()
+  if (wallAudioContext) {
+    wallAudioContext.close().catch(() => {})
+    wallAudioContext = null
   }
+  wallAudioBuffer = null
 })
 </script>
 

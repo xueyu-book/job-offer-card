@@ -10,16 +10,6 @@
 //   { id: 8, serial: 2, price: 168, glow: 'hsl(0, 90%, 55%)' }
 // ]
 
-const GLOW_BY_SERIAL = {
-  1: 'hsl(45, 95%, 55%)',
-  2: 'hsl(0, 90%, 55%)',
-  3: 'hsl(210, 80%, 65%)',
-  4: 'hsl(140, 70%, 45%)',
-  5: 'hsl(320, 75%, 65%)',
-  6: 'hsl(40, 95%, 55%)',
-  7: 'hsl(190, 85%, 55%)'
-}
-
 const PRICE_POOL = [66, 88, 98, 128, 148, 168, 188, 208]
 
 function randomInt(min, max) {
@@ -36,7 +26,6 @@ export const cardList = Array.from({ length: 60 }, (_, index) => {
   return {
     id: index + 1,
     serial,
-    price: pick(PRICE_POOL),
-    glow: GLOW_BY_SERIAL[serial]
+    price: pick(PRICE_POOL)
   }
 })

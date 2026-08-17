@@ -6,6 +6,19 @@
       src="@/assets/images/web/home/logo.gif"
       alt="求职卡"
     />
+    <button
+      type="button"
+      class="web-home__mute"
+      :aria-label="muted ? '开启声音' : '静音'"
+      :aria-pressed="muted"
+      @click="toggleMute"
+    >
+      <img
+        :src="muted ? iconMute : iconPlay"
+        :alt="muted ? '静音' : '声音开启'"
+        draggable="false"
+      />
+    </button>
     <div class="web-home__container">
       <nav class="web-home__tabbar">
         <button
@@ -13,11 +26,22 @@
           :key="tab.id"
           type="button"
           class="web-home__tab"
-          :class="{ active: activeTab === tab.id }"
+          :class="{ active: isTabActive(tab) }"
           :style="{ zIndex: tabs.length - index }"
           @click="selectTab(tab.id)"
         >
-          <img :src="getTabIcon(tab)" :alt="tab.label" />
+          <img
+            class="web-home__tab-icon"
+            :src="tab.icon"
+            :alt="tab.label"
+            draggable="false"
+          />
+          <img
+            class="web-home__tab-icon web-home__tab-icon--active"
+            :src="tab.activeIcon"
+            alt=""
+            draggable="false"
+          />
         </button>
       </nav>
       <div class="web-home__content">
@@ -39,7 +63,7 @@
 </template>
 
 <script setup>
-import { onUnmounted, provide, ref } from 'vue'
+import { onUnmounted, provide, ref, watch } from 'vue'
 import SplashScreen from '@/components/web/SplashScreen.vue'
 import CardShowcaseSection from '@/components/web/CardShowcaseSection.vue'
 import MerchShowcaseSection from '@/components/web/MerchShowcaseSection.vue'
@@ -56,6 +80,9 @@ import tabIcon2Active from '@/assets/images/web/tabbar/2_active.svg'
 import tabIcon3Active from '@/assets/images/web/tabbar/3_active.svg'
 import tabIcon4Active from '@/assets/images/web/tabbar/4_active.svg'
 import tabIcon5Active from '@/assets/images/web/tabbar/5_active.svg'
+import navSfx from '@/assets/audio/nav.wav'
+import iconPlay from '@/assets/images/web/home/icon_play.svg'
+import iconMute from '@/assets/images/web/home/icon_mute.svg'
 
 const TAB_FLASH_COUNT = 2
 const TAB_FRAME_MS = 160
@@ -63,8 +90,10 @@ const TAB_FRAME_MS = 160
 const activeCardId = ref(null)
 const activeTab = ref(1)
 const splashDone = ref(false)
+const muted = ref(true)
 
 provide('splashDone', splashDone)
+provide('muted', muted)
 
 function onSplashDone() {
   splashDone.value = true
@@ -79,8 +108,28 @@ function setActiveCardId(id) {
   activeCardId.value = id
 }
 
+function onPointerDownOutsideCard(event) {
+  if (activeCardId.value == null) return
+  if (event.target?.closest?.('.card.active')) return
+  if (event.target?.closest?.('.web-home__mute')) return
+  setActiveCardId(null)
+}
+
+function bindCardDismiss() {
+  window.addEventListener('pointerdown', onPointerDownOutsideCard, true)
+}
+
+function unbindCardDismiss() {
+  window.removeEventListener('pointerdown', onPointerDownOutsideCard, true)
+}
+
 provide('activeCardId', activeCardId)
 provide('setActiveCardId', setActiveCardId)
+
+watch(activeCardId, (id) => {
+  unbindCardDismiss()
+  if (id != null) bindCardDismiss()
+})
 
 const tabs = [
   { id: 1, label: '卡牌展示', icon: tabIcon1, activeIcon: tabIcon1Active, component: CardShowcaseSection },
@@ -90,12 +139,57 @@ const tabs = [
   { id: 5, label: '常见问题', icon: tabIcon5, activeIcon: tabIcon5Active, component: FaqSection }
 ]
 
-function getTabIcon(tab) {
+function isTabActive(tab) {
   if (flashTabId.value === tab.id) {
-    return flashShowActive.value ? tab.activeIcon : tab.icon
+    return flashShowActive.value
   }
-  return activeTab.value === tab.id ? tab.activeIcon : tab.icon
+  return activeTab.value === tab.id
 }
+
+function preloadTabIcons() {
+  tabs.forEach((tab) => {
+    ;[tab.icon, tab.activeIcon].forEach((src) => {
+      const img = new Image()
+      img.src = src
+      img.decode?.().catch(() => {})
+    })
+  })
+}
+
+preloadTabIcons()
+
+let navAudio = null
+
+function ensureNavAudio() {
+  if (navAudio) return navAudio
+
+  navAudio = new Audio(navSfx)
+  navAudio.preload = 'auto'
+  navAudio.load()
+  return navAudio
+}
+
+function playNavAudio() {
+  if (muted.value) return
+
+  const audio = ensureNavAudio()
+  try {
+    audio.pause()
+    audio.currentTime = 0
+    audio.play().catch(() => {})
+  } catch {
+    // 自动播放策略或音频未就绪时忽略
+  }
+}
+
+function toggleMute() {
+  muted.value = !muted.value
+  if (muted.value) {
+    navAudio?.pause()
+  }
+}
+
+ensureNavAudio()
 
 function clearFlashTimer() {
   if (flashTimer != null) {
@@ -107,6 +201,7 @@ function clearFlashTimer() {
 function selectTab(id) {
   if (id === activeTab.value && flashTabId.value == null) return
 
+  playNavAudio()
   clearFlashTimer()
   const token = ++flashToken
   activeTab.value = id
@@ -138,6 +233,11 @@ function selectTab(id) {
 onUnmounted(() => {
   flashToken += 1
   clearFlashTimer()
+  unbindCardDismiss()
+  if (navAudio) {
+    navAudio.pause()
+    navAudio = null
+  }
 })
 </script>
 
@@ -163,6 +263,25 @@ onUnmounted(() => {
   width: 244px;
   height: auto;
   z-index: 2;
+}
+
+.web-home__mute {
+  position: absolute;
+  top: 25px;
+  right: 250px;
+  z-index: 100;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
 }
 
 .web-home__container {
@@ -197,9 +316,27 @@ onUnmounted(() => {
   }
 
   img {
+    display: block;
     width: 100%;
     height: 100%;
     object-fit: contain;
+  }
+}
+
+.web-home__tab-icon--active {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.web-home__tab.active {
+  .web-home__tab-icon:not(.web-home__tab-icon--active) {
+    opacity: 0;
+  }
+
+  .web-home__tab-icon--active {
+    opacity: 1;
   }
 }
 

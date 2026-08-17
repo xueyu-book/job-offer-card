@@ -16,7 +16,7 @@
         @pointerleave="interactEnd"
       >
         <div class="card__back" aria-hidden="true">
-          <div class="card__info">
+          <div class="card__info back">
             <span class="card__serial">OFFER#{{ serial }}</span>
             <span class="card__price">¥: {{ price }}</span>
           </div>
@@ -33,8 +33,6 @@
           <div class="card__body">
             <img class="card__bg" :src="cardSrc" :alt="`OFFER#${serial}`" />
           </div>
-          <div class="card__shine" />
-          <div class="card__glare" />
         </div>
       </button>
     </div>
@@ -45,12 +43,38 @@
 import { computed, inject, onMounted, onUnmounted, ref, watch } from 'vue'
 import { clamp, round } from '@/utils/math'
 import { useSpring } from '@/composables/useSpring'
+import cardSfx from '@/assets/audio/card.mp3'
+
+let cardAudio = null
+
+function ensureCardAudio() {
+  if (cardAudio) return cardAudio
+
+  cardAudio = new Audio(cardSfx)
+  cardAudio.preload = 'auto'
+  cardAudio.load()
+  return cardAudio
+}
+
+function playCardAudio() {
+  if (muted.value) return
+
+  const audio = ensureCardAudio()
+  try {
+    audio.pause()
+    audio.currentTime = 0
+    audio.play().catch(() => {})
+  } catch {
+    // 自动播放策略或音频未就绪时忽略
+  }
+}
+
+ensureCardAudio()
 
 const props = defineProps({
   id: { type: [String, Number], required: true },
   serial: { type: [String, Number], required: true },
-  price: { type: [String, Number], required: true },
-  glow: { type: String, default: 'hsl(0, 90%, 48%)' }
+  price: { type: [String, Number], required: true }
 })
 
 const cardImages = import.meta.glob('@/assets/images/web/card/*.jpg', {
@@ -68,6 +92,7 @@ const cardBackSrc = computed(() => cardImageSrc(`${props.serial}_back.jpg`))
 
 const activeCardId = inject('activeCardId', ref(null))
 const setActiveCardId = inject('setActiveCardId', () => {})
+const muted = inject('muted', ref(true))
 
 const cardRef = ref(null)
 const active = computed(() => activeCardId.value === props.id)
@@ -101,7 +126,6 @@ const dynamicStyles = computed(() => {
   const translate = springTranslate.current.value
 
   return {
-    '--card-glow': props.glow,
     '--pointer-x': `${glare.x}%`,
     '--pointer-y': `${glare.y}%`,
     '--card-opacity': glare.o,
@@ -235,6 +259,7 @@ function retreat() {
 
 function onCardClick() {
   if (!active.value) {
+    playCardAudio()
     setActiveCardId(props.id)
     return
   }
@@ -256,6 +281,10 @@ watch(active, (isActive) => {
   }
 })
 
+watch(muted, (isMuted) => {
+  if (isMuted) cardAudio?.pause()
+})
+
 onMounted(() => {
   window.addEventListener('scroll', reposition, { passive: true })
   window.addEventListener('resize', reposition)
@@ -272,7 +301,6 @@ onUnmounted(() => {
 <style scoped lang="scss">
 .card {
   --card-edge: #e50012;
-  --card-glow: hsl(0, 90%, 48%);
   --pointer-x: 50%;
   --pointer-y: 50%;
   --card-scale: 1;
@@ -326,24 +354,6 @@ onUnmounted(() => {
   pointer-events: auto;
   transform: rotateY(var(--rotate-x)) rotateX(var(--rotate-y));
   transform-style: preserve-3d;
-  box-shadow:
-    0 0 3px -1px transparent,
-    0 0 2px 1px transparent,
-    0 0 5px 0 transparent,
-    0 10px 20px -5px rgba(0, 0, 0, 0.45),
-    0 2px 15px -5px rgba(0, 0, 0, 0.35);
-  transition: box-shadow 0.4s ease;
-}
-
-.card.active .card__rotator,
-.card__rotator:focus-visible {
-  box-shadow:
-    0 0 3px -1px #fff,
-    0 0 3px 1px var(--card-edge),
-    0 0 12px 2px var(--card-glow),
-    0 10px 20px -5px rgba(0, 0, 0, 0.55),
-    0 0 40px -30px var(--card-glow),
-    0 0 50px -20px var(--card-glow);
 }
 
 .card.active .card__translater,
@@ -356,7 +366,6 @@ onUnmounted(() => {
   grid-area: 1 / 1;
   width: 188px;
   height: 300px;
-  overflow: hidden;
   pointer-events: none;
   transform-style: preserve-3d;
 }
@@ -365,8 +374,6 @@ onUnmounted(() => {
   position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  background: #fff;
   transform: rotateY(180deg) translateZ(1px);
   backface-visibility: hidden;
 }
@@ -375,7 +382,6 @@ onUnmounted(() => {
   position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   background: transparent;
   transform: translate3d(0, 0, 0.01px);
   backface-visibility: hidden;
@@ -388,6 +394,8 @@ onUnmounted(() => {
   justify-content: space-between;
   width: 188px;
   height: 36px;
+  margin-bottom: 8px;
+  flex-shrink: 0;
   padding: 0 10px;
   border: 4px solid #e50012;
   background: #fff;
@@ -396,51 +404,34 @@ onUnmounted(() => {
   font-weight: 700;
   line-height: 1;
   letter-spacing: 0.02em;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  transition: box-shadow 0.35s ease;
+
+  &.back {
+    background: #fff;
+  }
 }
 
 .card__body {
   width: 188px;
-  height: 258px;
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  transition: box-shadow 0.35s ease;
+}
+
+.card.active {
+  .card__info,
+  .card__body {
+    box-shadow: none;
+  }
 }
 
 .card__bg {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-
-.card__shine,
-.card__glare {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.card__shine {
-  transform: translateZ(1px);
-  background: linear-gradient(
-    115deg,
-    transparent 40%,
-    rgba(255, 255, 255, 0.35) 45%,
-    transparent 55%
-  );
-  background-size: 200% 200%;
-  background-position: var(--pointer-x) var(--pointer-y);
-  mix-blend-mode: color-dodge;
-  opacity: var(--card-opacity);
-  filter: brightness(0.9) contrast(1.4);
-}
-
-.card__glare {
-  transform: translateZ(1.41px);
-  background-image: radial-gradient(
-    farthest-corner circle at var(--pointer-x) var(--pointer-y),
-    hsla(0, 0%, 100%, 0.8) 10%,
-    hsla(0, 0%, 100%, 0.45) 20%,
-    hsla(0, 0%, 0%, 0.45) 90%
-  );
-  mix-blend-mode: overlay;
-  opacity: var(--card-opacity);
 }
 </style>
