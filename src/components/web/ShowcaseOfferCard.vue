@@ -44,6 +44,7 @@ import { computed, inject, onMounted, onUnmounted, ref, watch } from 'vue'
 import { clamp, round } from '@/utils/math'
 import { useSpring } from '@/composables/useSpring'
 import cardSfx from '@/assets/audio/card.mp3'
+import { playHtmlAudio, registerHtmlAudio } from '@/utils/audio'
 
 let cardAudio = null
 
@@ -53,20 +54,12 @@ function ensureCardAudio() {
   cardAudio = new Audio(cardSfx)
   cardAudio.preload = 'auto'
   cardAudio.load()
-  return cardAudio
+  return registerHtmlAudio(cardAudio)
 }
 
 function playCardAudio() {
   if (muted.value) return
-
-  const audio = ensureCardAudio()
-  try {
-    audio.pause()
-    audio.currentTime = 0
-    audio.play().catch(() => {})
-  } catch {
-    // 自动播放策略或音频未就绪时忽略
-  }
+  playHtmlAudio(ensureCardAudio())
 }
 
 ensureCardAudio()

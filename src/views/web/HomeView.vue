@@ -83,6 +83,7 @@ import tabIcon5Active from '@/assets/images/web/tabbar/5_active.svg'
 import navSfx from '@/assets/audio/nav.wav'
 import iconPlay from '@/assets/images/web/home/icon_play.svg'
 import iconMute from '@/assets/images/web/home/icon_mute.svg'
+import { playHtmlAudio, registerHtmlAudio, requestAudioPermission, requestMicrophonePermission } from '@/utils/audio'
 
 const TAB_FLASH_COUNT = 2
 const TAB_FRAME_MS = 160
@@ -166,27 +167,24 @@ function ensureNavAudio() {
   navAudio = new Audio(navSfx)
   navAudio.preload = 'auto'
   navAudio.load()
-  return navAudio
+  return registerHtmlAudio(navAudio)
 }
 
 function playNavAudio() {
   if (muted.value) return
-
-  const audio = ensureNavAudio()
-  try {
-    audio.pause()
-    audio.currentTime = 0
-    audio.play().catch(() => {})
-  } catch {
-    // 自动播放策略或音频未就绪时忽略
-  }
+  playHtmlAudio(ensureNavAudio())
 }
 
 function toggleMute() {
-  muted.value = !muted.value
   if (muted.value) {
-    navAudio?.pause()
+    requestAudioPermission()
+    requestMicrophonePermission()
+    muted.value = false
+    return
   }
+
+  muted.value = true
+  navAudio?.pause()
 }
 
 ensureNavAudio()

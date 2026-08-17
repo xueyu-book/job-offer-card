@@ -52,6 +52,7 @@ import { inject, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import ShowcaseOfferCard from './ShowcaseOfferCard.vue'
 import { cardList } from '@/content/cardShowcaseContent'
 import wallSfx from '@/assets/audio/wall.mp3'
+import { getAudioContext, requestAudioPermission } from '@/utils/audio'
 
 /** 单张卡片高度 */
 const CARD_HEIGHT = 300
@@ -82,7 +83,6 @@ let programmaticTimer = null
 let wallSettleTimer = null
 let cardSettleTimer = null
 let revealFrame = null
-let wallAudioContext = null
 let wallAudioBuffer = null
 let wallAudioSource = null
 let wallSoundPlaying = false
@@ -211,13 +211,7 @@ function scrollTwoRows() {
 }
 
 function getWallAudioContext() {
-  if (wallAudioContext) return wallAudioContext
-
-  const AudioCtx = window.AudioContext || window.webkitAudioContext
-  if (!AudioCtx) return null
-
-  wallAudioContext = new AudioCtx()
-  return wallAudioContext
+  return getAudioContext()
 }
 
 function loadWallAudioBuffer() {
@@ -239,22 +233,8 @@ function markWallSoundPending() {
 }
 
 function unlockWallAudio() {
-  const ctx = getWallAudioContext()
-  if (!ctx || wallSoundPlaying) return
-
-  if (ctx.state === 'suspended') {
-    ctx.resume().catch(() => {})
-  }
-
-  try {
-    const silent = ctx.createBuffer(1, 1, ctx.sampleRate || 22050)
-    const source = ctx.createBufferSource()
-    source.buffer = silent
-    source.connect(ctx.destination)
-    source.start(0)
-  } catch {
-    // iOS 解锁失败时等下次手势再试
-  }
+  if (wallSoundPlaying) return
+  requestAudioPermission()
 }
 
 function stopWallAudio() {
@@ -401,10 +381,6 @@ onUnmounted(() => {
   wallSoundPlaying = false
   wallSoundStarted = false
   stopWallAudio()
-  if (wallAudioContext) {
-    wallAudioContext.close().catch(() => {})
-    wallAudioContext = null
-  }
   wallAudioBuffer = null
 })
 </script>
