@@ -79,6 +79,14 @@
       </div>
     </div>
 
+    <a
+      class="web-home__site"
+      href="https://www.theotherhandclub.com/"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      WWW.THEOTHERHANDCLUB.COM
+    </a>
     <div
       class="web-home__backdrop"
       :class="{ active: activeCardId !== null }"
@@ -141,7 +149,7 @@ function setActiveCardId(id) {
 function onPointerDownOutsideCard(event) {
   if (activeCardId.value == null) return
   if (event.target?.closest?.('.card.active')) return
-  if (event.target?.closest?.('.web-home__mute, .web-home__provision, .web-home__external')) return
+  if (event.target?.closest?.('.web-home__mute, .web-home__provision, .web-home__external, .web-home__site')) return
   setActiveCardId(null)
 }
 
@@ -282,6 +290,16 @@ onUnmounted(() => {
 })
 </script>
 
+<style lang="scss">
+@font-face {
+  font-family: 'Nacelle';
+  src: url('@/assets/fonts/Nacelle-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+</style>
+
 <style scoped lang="scss">
 .web-home {
   position: relative;
@@ -388,6 +406,21 @@ onUnmounted(() => {
   right: 20px;
   width: 166px;
   height: 148px;
+}
+
+.web-home__site {
+  position: absolute;
+  bottom: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  font-family: 'Nacelle', sans-serif;
+  font-weight: 400;
+  font-size: 10pt;
+  line-height: 1;
+  color: #f8fafc;
+  white-space: nowrap;
+  cursor: pointer;
 }
 
 .web-home__container {
