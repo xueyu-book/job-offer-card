@@ -32,7 +32,8 @@
           class="card-showcase-section__item"
           :class="{
             'card-showcase-section__item--revealed': cardsRevealed,
-            'card-showcase-section__item--settled': cardsSettled
+            'card-showcase-section__item--settled': cardsSettled,
+            'card-showcase-section__item--active': activeCardId === card.id
           }"
           :style="getCardItemStyle(index)"
         >
@@ -40,6 +41,9 @@
             :id="card.id"
             :serial="card.serial"
             :price="card.price"
+            :rate="card.rate"
+            :prize="card.prize"
+            :date="card.date"
           />
         </div>
       </div>
@@ -409,7 +413,21 @@ $card-reveal-duration: 0.75s;
 }
 
 .card-showcase-section.active {
-  z-index: 99;
+  z-index: 120;
+  overflow: visible;
+
+  .card-showcase-section__scroller {
+    $clip-pad: 120px;
+    overflow: hidden;
+    width: calc(100% + #{$clip-pad * 2});
+    height: calc(636px + #{$clip-pad});
+    margin: (-$clip-pad) (-$clip-pad) 0;
+    padding: $clip-pad $clip-pad 0;
+  }
+
+  .card-showcase-section__item:not(.card-showcase-section__item--active) {
+    pointer-events: none;
+  }
 }
 
 .card-showcase-section__wall {
@@ -494,5 +512,10 @@ $card-reveal-duration: 0.75s;
 .card-showcase-section__item--settled {
   transform: none;
   transition: none;
+}
+
+.card-showcase-section__item--active {
+  z-index: 1;
+  overflow: visible;
 }
 </style>

@@ -27,9 +27,11 @@ function setRootFontSize() {
     return
   }
 
+  // 最小高度随当前宽度按 16:9 计算；视口更矮时不再缩小（由页面滚动）
+  const minHeight = clientWidth * (PC_DESIGN_HEIGHT / PC_DESIGN_WIDTH)
   const scale = Math.min(
     clientWidth / PC_DESIGN_WIDTH,
-    clientHeight / PC_DESIGN_HEIGHT
+    Math.max(clientHeight, minHeight) / PC_DESIGN_HEIGHT
   )
   document.documentElement.style.fontSize = `${PC_ROOT_VALUE * scale}px`
 }

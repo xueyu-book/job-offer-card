@@ -16,9 +16,12 @@
         @pointerleave="interactEnd"
       >
         <div class="card__back" aria-hidden="true">
-          <div class="card__info back">
-            <span class="card__serial">OFFER#{{ serial }}</span>
-            <span class="card__price">¥: {{ price }}</span>
+          <div class="card__info" :class="infoLayoutClass">
+            <template v-if="showLaterHeader">
+              <span class="card__info-side">By TOHC</span>
+              <span class="card__info-side">{{ date }}</span>
+            </template>
+            <span v-else class="card__info-text">评分待解锁</span>
           </div>
           <div class="card__body">
             <img class="card__bg" :src="cardBackSrc" alt="" />
@@ -26,12 +29,18 @@
         </div>
 
         <div class="card__front">
-          <div class="card__info">
-            <span class="card__serial">OFFER#{{ serial }}</span>
-            <span class="card__price">¥: {{ price }}</span>
+          <div class="card__info" :class="infoLayoutClass">
+            <template v-if="showLaterHeader">
+              <span class="card__info-side">Rate:{{ rate }}</span>
+              <span class="card__info-side">¥:{{ displayPrize }}</span>
+            </template>
+            <template v-else>
+              <span class="card__info-line">购卡请前往小红书账号</span>
+              <span class="card__info-line">TheOtherHandClub</span>
+            </template>
           </div>
           <div class="card__body">
-            <img class="card__bg" :src="cardSrc" :alt="`OFFER#${serial}`" />
+            <img class="card__bg" :src="cardSrc" :alt="`求职卡 ${serial}`" />
           </div>
         </div>
       </button>
@@ -54,8 +63,30 @@ function playCardAudio() {
 const props = defineProps({
   id: { type: [String, Number], required: true },
   serial: { type: [String, Number], required: true },
-  price: { type: [String, Number], required: true }
+  price: { type: [String, Number], default: '' },
+  rate: { type: [String, Number], default: '' },
+  prize: { type: [String, Number], default: '' },
+  date: { type: [String, Number], default: '' }
 })
+
+function hasHeaderValue(value) {
+  return value != null && String(value).trim() !== ''
+}
+
+const displayPrize = computed(() =>
+  hasHeaderValue(props.prize) ? props.prize : props.price
+)
+
+const showLaterHeader = computed(
+  () =>
+    hasHeaderValue(props.rate) &&
+    hasHeaderValue(displayPrize.value) &&
+    hasHeaderValue(props.date)
+)
+
+const infoLayoutClass = computed(() =>
+  showLaterHeader.value ? 'card__info--split' : 'card__info--plain'
+)
 
 const cardImages = import.meta.glob('@/assets/images/web/card/*.jpg', {
   eager: true,
@@ -94,9 +125,9 @@ const springTranslate = useSpring({ x: 0, y: 0 }, springPopover)
 const springScale = useSpring(1, springPopover)
 
 const ariaLabel = computed(() => {
-  if (!active.value) return `展开求职卡：OFFER#${props.serial}`
-  if (!flipped.value) return `翻转查看背面：OFFER#${props.serial}`
-  return `翻转回正面：OFFER#${props.serial}`
+  if (!active.value) return `展开求职卡 ${props.serial}`
+  if (!flipped.value) return `翻转查看背面：求职卡 ${props.serial}`
+  return `翻转回正面：求职卡 ${props.serial}`
 })
 
 const dynamicStyles = computed(() => {
@@ -274,6 +305,16 @@ onUnmounted(() => {
 })
 </script>
 
+<style lang="scss">
+@font-face {
+  font-family: 'Dream Han Sans W10';
+  src: url('@/assets/fonts/mengyuan/DreamHanSansExpCN-W10.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+</style>
+
 <style scoped lang="scss">
 .card {
   --card-edge: #e50012;
@@ -289,6 +330,7 @@ onUnmounted(() => {
   position: relative;
   width: 188px;
   height: 300px;
+  overflow: visible;
   transform: translate3d(0, 0, 0.01px);
   transform-style: preserve-3d;
   pointer-events: none;
@@ -299,6 +341,11 @@ onUnmounted(() => {
 .card.interacting,
 .card.active {
   z-index: calc(var(--card-scale) * 120);
+}
+
+.card.active {
+  contain: none;
+  will-change: auto;
 }
 
 .card__translater,
@@ -314,6 +361,7 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   position: relative;
+  overflow: visible;
   --translate-z: calc(var(--card-scale) * 150px + 0.01px);
   transform: translate3d(var(--translate-x), var(--translate-y), var(--translate-z))
     scale(var(--card-scale));
@@ -328,6 +376,7 @@ onUnmounted(() => {
   appearance: none;
   cursor: pointer;
   pointer-events: auto;
+  overflow: visible;
   transform: rotateY(var(--rotate-x)) rotateX(var(--rotate-y));
   transform-style: preserve-3d;
 }
@@ -366,26 +415,40 @@ onUnmounted(() => {
 .card__info {
   box-sizing: border-box;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
   width: 188px;
   height: 36px;
   margin-bottom: 8px;
   flex-shrink: 0;
-  padding: 0 10px;
+  padding: 0 8px;
   border: 4px solid #e50012;
   background: #fff;
   color: #111;
-  font-size: 14px;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: 0.02em;
+  font-family: 'Dream Han Sans W10', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+  font-size: 8pt;
+  font-weight: 400;
+  line-height: 1.15;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
   transition: box-shadow 0.35s ease;
+}
 
-  &.back {
-    background: #fff;
-  }
+.card__info--plain {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.card__info--split {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card__info-line,
+.card__info-text,
+.card__info-side {
+  display: block;
+  white-space: nowrap;
 }
 
 .card__body {

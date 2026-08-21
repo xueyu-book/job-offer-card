@@ -20,6 +20,30 @@
         draggable="false"
       />
     </button>
+    <a
+      class="web-home__provision"
+      href="https://www.baidu.com"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="条款"
+    >
+      <img
+        src="@/assets/images/web/home/provision.svg"
+        alt="条款"
+        draggable="false"
+      />
+    </a>
+    <a
+      v-for="link in externalLinks"
+      :key="link.id"
+      class="web-home__external"
+      :class="`web-home__external--${link.id}`"
+      :href="link.href"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      <img :src="link.src" alt="" draggable="false" />
+    </a>
     <div class="web-home__container">
       <nav class="web-home__tabbar">
         <button
@@ -84,10 +108,14 @@ import tabIcon5Active from '@/assets/images/web/tabbar/5_active.svg'
 import navSfx from '@/assets/audio/nav.wav'
 import iconPlay from '@/assets/images/web/home/icon_play.svg'
 import iconMute from '@/assets/images/web/home/icon_mute.svg'
+import externalIcon1 from '@/assets/images/web/external-link/1.svg'
+import externalIcon2 from '@/assets/images/web/external-link/2.svg'
+import externalIcon3 from '@/assets/images/web/external-link/3.svg'
+import externalIcon4 from '@/assets/images/web/external-link/4.svg'
 import { getHtmlSfx, pauseAllHtmlAudio, playHtmlAudio, readMutedPreference, requestAudioPermission, requestMicrophonePermission, writeMutedPreference } from '@/utils/audio'
 
 const TAB_FLASH_COUNT = 2
-const TAB_FRAME_MS = 160
+const TAB_FRAME_MS = 80
 
 const activeCardId = ref(null)
 const activeTab = ref(1)
@@ -113,7 +141,7 @@ function setActiveCardId(id) {
 function onPointerDownOutsideCard(event) {
   if (activeCardId.value == null) return
   if (event.target?.closest?.('.card.active')) return
-  if (event.target?.closest?.('.web-home__mute')) return
+  if (event.target?.closest?.('.web-home__mute, .web-home__provision, .web-home__external')) return
   setActiveCardId(null)
 }
 
@@ -132,6 +160,21 @@ watch(activeCardId, (id) => {
   unbindCardDismiss()
   if (id != null) bindCardDismiss()
 })
+
+const externalLinks = [
+  { id: 1, href: 'https://www.gsxt.gov.cn/index.html', src: externalIcon1 },
+  { id: 2, href: 'https://www.doubao.com', src: externalIcon2 },
+  {
+    id: 3,
+    href: 'https://www.disneycareers.com/en/search-jobs?acm=ALL&alrpm=ALL&ascf=[%7B%22key%22:%22custom_fields.Theming%22,%22value%22:%22Hong+Kong+Disneyland+Resort+Professional%22%7D,%7B%22key%22:%22custom_fields.IndustryCustomField%22,%22value%22:%22Hong+Kong+Disneyland+Resort%22%7D]',
+    src: externalIcon3
+  },
+  {
+    id: 4,
+    href: 'https://v.qq.com/x/cover/4hzk4qyf1nghvbu/t0015x6wdny.html?no_refer=1&traceid=12_360',
+    src: externalIcon4
+  }
+]
 
 const tabs = [
   { id: 1, label: '卡牌展示', icon: tabIcon1, activeIcon: tabIcon1Active, component: CardShowcaseSection },
@@ -246,26 +289,34 @@ onUnmounted(() => {
   align-items: flex-start;
   justify-content: center;
   width: 100%;
-  height: 100vh;
-  height: 100dvh;
-  background: url('@/assets/images/web/home/page_bg.svg') center center / cover no-repeat;
+  aspect-ratio: 16 / 9;
+  background: url('@/assets/images/web/home/page_bg.svg') center top / 100% auto no-repeat;
   color: #f8fafc;
   overflow: hidden;
 }
 
+.web-home.is-card-active {
+  overflow: visible;
+
+  .web-home__mute,
+  .web-home__provision {
+    z-index: 2;
+  }
+}
+
 .web-home__logo {
   position: absolute;
-  top: 15px;
+  top: 10px;
   left: 50%;
   transform: translateX(-50%);
-  width: 244px;
+  width: 300px;
   height: auto;
   z-index: 2;
 }
 
-.web-home__mute {
+.web-home__mute,
+.web-home__provision {
   position: absolute;
-  top: 25px;
   right: 250px;
   z-index: 100;
   width: 38px;
@@ -280,11 +331,63 @@ onUnmounted(() => {
     width: 100%;
     height: 100%;
   }
+}
+
+.web-home__mute {
+  top: 25px;
 
   &:disabled {
     pointer-events: none;
     cursor: default;
   }
+}
+
+.web-home__provision {
+  top: 70px;
+}
+
+.web-home__external {
+  position: absolute;
+  z-index: 3;
+  max-width: none;
+  cursor: pointer;
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: contain;
+    pointer-events: none;
+  }
+}
+
+.web-home__external--1 {
+  top: 716px;
+  left: 14px;
+  width: 216px;
+  height: 160px;
+}
+
+.web-home__external--2 {
+  top: 832px;
+  left: -60px;
+  width: 246px;
+  height: 290px;
+}
+
+.web-home__external--3 {
+  top: 202px;
+  right: -34px;
+  width: 254px;
+  height: 250px;
+}
+
+.web-home__external--4 {
+  top: 468px;
+  right: 20px;
+  width: 166px;
+  height: 148px;
 }
 
 .web-home__container {
