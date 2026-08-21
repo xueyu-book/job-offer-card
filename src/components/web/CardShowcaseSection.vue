@@ -73,6 +73,8 @@ const CARD_REVEAL_DURATION_MS = 750
 const activeCardId = inject('activeCardId', ref(null))
 const splashDone = inject('splashDone', ref(true))
 const muted = inject('muted', ref(true))
+const pagerProgress = inject('pagerProgress', null)
+const pagerOverflow = inject('pagerOverflow', null)
 const scrollerRef = ref(null)
 const wallSliding = ref(false)
 const wallSettled = ref(false)
@@ -188,7 +190,19 @@ function scheduleSnap() {
   snapTimer = setTimeout(snapToNearestRow, 180)
 }
 
+function syncPagerProgress() {
+  const el = scrollerRef.value
+  if (!el) return
+
+  const max = Math.max(el.scrollHeight - el.clientHeight, 0)
+  if (pagerOverflow) pagerOverflow.value = max
+  if (pagerProgress) {
+    pagerProgress.value = max <= 0 ? 0 : Math.min(Math.max(el.scrollTop / max, 0), 1)
+  }
+}
+
 function onScroll() {
+  syncPagerProgress()
   scheduleSnap()
 }
 
@@ -344,7 +358,8 @@ bindAudioUnlock()
 
 defineExpose({
   scrollByRows,
-  scrollTwoRows
+  scrollTwoRows,
+  syncPagerProgress
 })
 
 watch(
@@ -370,6 +385,7 @@ watch(muted, (isMuted) => {
 
 onMounted(() => {
   scrollerRef.value?.addEventListener('scrollend', onScrollEnd)
+  syncPagerProgress()
 })
 
 onUnmounted(() => {

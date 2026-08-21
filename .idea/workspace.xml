@@ -5,39 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5fe094ee-6e06-4d8d-bcd0-7e67d277362f" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/card/1.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/images/web/card/1.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/card/1_back.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/images/web/card/1_back.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/card/2.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/images/web/card/2.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/card/2_back.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/images/web/card/2_back.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/card/3.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/images/web/card/3.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/card/3_back.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/images/web/card/3_back.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/card/4.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/images/web/card/4.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/card/4_back.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/images/web/card/4_back.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/card/5.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/images/web/card/5.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/card/5_back.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/images/web/card/5_back.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/card/6.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/images/web/card/6.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/card/6_back.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/images/web/card/6_back.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/card/7.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/images/web/card/7.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/card/7_back.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/images/web/card/7_back.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/external-link/2.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/external-link/3.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/external-link/4.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/external-link/资源 3.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/home/card_bg.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/images/web/home/card_bg.svg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/home/icon_mute.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/images/web/home/icon_mute.svg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/home/icon_play.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/images/web/home/icon_play.svg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/home/logo.gif" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/images/web/home/logo.gif" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/home/page_bg.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/images/web/home/page_bg.svg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/home/未标题-12.svg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/tabbar/1.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/images/web/tabbar/1.svg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/tabbar/1_active.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/images/web/tabbar/1_active.svg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/tabbar/4.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/images/web/tabbar/4.svg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/tabbar/4_active.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/images/web/tabbar/4_active.svg" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/components/web/CardShowcaseSection.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/web/CardShowcaseSection.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/web/ShowcaseOfferCard.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/web/ShowcaseOfferCard.vue" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/content/cardShowcaseContent.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/content/cardShowcaseContent.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/styles/global.scss" beforeDir="false" afterPath="$PROJECT_DIR$/src/styles/global.scss" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/utils/rem.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils/rem.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/views/web/HomeView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/views/web/HomeView.vue" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -86,7 +55,7 @@
       <option name="presentableId" value="Default" />
       <updated>1785996908974</updated>
       <workItem from="1785996910294" duration="4486000" />
-      <workItem from="1787280923379" duration="1517000" />
+      <workItem from="1787280923379" duration="2568000" />
     </task>
     <servers />
   </component>

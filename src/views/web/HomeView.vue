@@ -75,7 +75,49 @@
           v-for="tab in tabs"
           v-show="activeTab === tab.id"
           :key="tab.id"
+          :ref="(el) => setSectionRef(tab.id, el)"
         />
+        <div class="web-home__pager">
+          <img
+            class="web-home__pager-line"
+            src="@/assets/images/web/home/page_line.svg"
+            alt=""
+            draggable="false"
+          />
+          <img
+            class="web-home__pager-dot"
+            :style="{ top: `${pagerDotTop}px` }"
+            src="@/assets/images/web/home/page_dot.svg"
+            alt=""
+            draggable="false"
+          />
+          <button
+            type="button"
+            class="web-home__pager-up"
+            :disabled="!canPageUp"
+            aria-label="上一页"
+            @click="pageUp"
+          >
+            <img
+              src="@/assets/images/web/home/page_up.svg"
+              alt=""
+              draggable="false"
+            />
+          </button>
+          <button
+            type="button"
+            class="web-home__pager-down"
+            :disabled="!canPageDown"
+            aria-label="下一页"
+            @click="pageDown"
+          >
+            <img
+              src="@/assets/images/web/home/page_down.svg"
+              alt=""
+              draggable="false"
+            />
+          </button>
+        </div>
       </div>
     </div>
 
@@ -96,7 +138,7 @@
 </template>
 
 <script setup>
-import { onUnmounted, provide, ref, watch } from 'vue'
+import { computed, nextTick, onUnmounted, provide, ref, watch } from 'vue'
 import SplashScreen from '@/components/web/SplashScreen.vue'
 import CardShowcaseSection from '@/components/web/CardShowcaseSection.vue'
 import MerchShowcaseSection from '@/components/web/MerchShowcaseSection.vue'
@@ -124,11 +166,48 @@ import { getHtmlSfx, pauseAllHtmlAudio, playHtmlAudio, readMutedPreference, requ
 
 const TAB_FLASH_COUNT = 2
 const TAB_FRAME_MS = 80
+const PAGE_ROWS = 2
+const PAGE_DOT_TOP_MIN = 160
+const PAGE_DOT_TOP_MAX = 606
 
 const activeCardId = ref(null)
 const activeTab = ref(1)
 const splashDone = ref(false)
 const muted = ref(readMutedPreference())
+const pagerProgress = ref(0)
+const pagerOverflow = ref(0)
+const sectionRefs = Object.create(null)
+
+provide('pagerProgress', pagerProgress)
+provide('pagerOverflow', pagerOverflow)
+
+function setSectionRef(id, el) {
+  if (el) sectionRefs[id] = el
+  else delete sectionRefs[id]
+}
+
+const pagerDotTop = computed(
+  () => PAGE_DOT_TOP_MIN + pagerProgress.value * (PAGE_DOT_TOP_MAX - PAGE_DOT_TOP_MIN)
+)
+const canPageUp = computed(
+  () => activeCardId.value == null && pagerProgress.value > 0.001
+)
+const canPageDown = computed(
+  () =>
+    activeCardId.value == null &&
+    pagerOverflow.value > 1 &&
+    pagerProgress.value < 0.999
+)
+
+function pageUp() {
+  if (!canPageUp.value) return
+  sectionRefs[activeTab.value]?.scrollByRows?.(-PAGE_ROWS)
+}
+
+function pageDown() {
+  if (!canPageDown.value) return
+  sectionRefs[activeTab.value]?.scrollByRows?.(PAGE_ROWS)
+}
 
 provide('splashDone', splashDone)
 provide('muted', muted)
@@ -167,6 +246,14 @@ provide('setActiveCardId', setActiveCardId)
 watch(activeCardId, (id) => {
   unbindCardDismiss()
   if (id != null) bindCardDismiss()
+})
+
+watch(activeTab, () => {
+  pagerProgress.value = 0
+  pagerOverflow.value = 0
+  nextTick(() => {
+    sectionRefs[activeTab.value]?.syncPagerProgress?.()
+  })
 })
 
 const externalLinks = [
@@ -480,6 +567,7 @@ onUnmounted(() => {
 }
 
 .web-home__content {
+  position: relative;
   display: flex;
   align-items: center;
   box-sizing: border-box;
@@ -489,6 +577,67 @@ onUnmounted(() => {
   padding-left: 30px;
   background: url('@/assets/images/web/home/card_bg.svg') center center / 100% 100% no-repeat;
   margin-left: -1px;
+}
+
+.web-home__pager {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.web-home__pager-line,
+.web-home__pager-dot,
+.web-home__pager-up,
+.web-home__pager-down {
+  position: absolute;
+  max-width: none;
+}
+
+.web-home__pager-line {
+  top: 92px;
+  right: 46px;
+  width: auto;
+  height: 534px;
+}
+
+.web-home__pager-dot {
+  top: 160px;
+  right: 37px;
+  width: 20px;
+  height: auto;
+}
+
+.web-home__pager-up,
+.web-home__pager-down {
+  right: 28px;
+  width: 42px;
+  height: auto;
+  padding: 0;
+  border: none;
+  background: transparent;
+  pointer-events: auto;
+  cursor: pointer;
+
+  img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: none;
+    pointer-events: none;
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+.web-home__pager-up {
+  bottom: 150px;
+}
+
+.web-home__pager-down {
+  bottom: 78px;
 }
 
 .web-home__header {
