@@ -6,6 +6,10 @@
       src="@/assets/images/web/home/logo.gif"
       alt="求职卡"
     />
+    <FlipCountdown
+      class="web-home__countdown"
+      :end-time="countdownEndTime"
+    />
     <button
       type="button"
       class="web-home__mute"
@@ -69,7 +73,10 @@
           />
         </button>
       </nav>
-      <div class="web-home__content">
+      <div
+        class="web-home__content"
+        :class="{ 'is-flush': isFlushContent }"
+      >
         <component
           :is="tab.component"
           v-for="tab in tabs"
@@ -77,7 +84,7 @@
           :key="tab.id"
           :ref="(el) => setSectionRef(tab.id, el)"
         />
-        <div class="web-home__pager">
+        <div v-show="showPager" class="web-home__pager">
           <img
             class="web-home__pager-line"
             src="@/assets/images/web/home/page_line.svg"
@@ -140,6 +147,7 @@
 <script setup>
 import { computed, nextTick, onUnmounted, provide, ref, watch } from 'vue'
 import SplashScreen from '@/components/web/SplashScreen.vue'
+import FlipCountdown from '@/components/web/FlipCountdown.vue'
 import CardShowcaseSection from '@/components/web/CardShowcaseSection.vue'
 import MerchShowcaseSection from '@/components/web/MerchShowcaseSection.vue'
 import GameRulesSection from '@/components/web/GameRulesSection.vue'
@@ -170,6 +178,8 @@ const PAGE_ROWS = 2
 const PAGE_DOT_TOP_MIN = 160
 const PAGE_DOT_TOP_MAX = 606
 
+const countdownEndTime = '2026-09-17T18:00:00+08:00'
+
 const activeCardId = ref(null)
 const activeTab = ref(1)
 const splashDone = ref(false)
@@ -186,6 +196,8 @@ function setSectionRef(id, el) {
   else delete sectionRefs[id]
 }
 
+const showPager = computed(() => activeTab.value !== 2)
+const isFlushContent = computed(() => activeTab.value === 3 || activeTab.value === 4 || activeTab.value === 5)
 const pagerDotTop = computed(
   () => PAGE_DOT_TOP_MIN + pagerProgress.value * (PAGE_DOT_TOP_MAX - PAGE_DOT_TOP_MIN)
 )
@@ -419,6 +431,13 @@ onUnmounted(() => {
   z-index: 2;
 }
 
+.web-home__countdown {
+  position: absolute;
+  top: 26px;
+  left: 238px;
+  z-index: 2;
+}
+
 .web-home__mute,
 .web-home__provision {
   position: absolute;
@@ -503,7 +522,7 @@ onUnmounted(() => {
   z-index: 3;
   font-family: 'Nacelle', sans-serif;
   font-weight: 400;
-  font-size: 10pt;
+  font-size: 10px;
   line-height: 1;
   color: #f8fafc;
   white-space: nowrap;
@@ -577,6 +596,10 @@ onUnmounted(() => {
   padding-left: 30px;
   background: url('@/assets/images/web/home/card_bg.svg') center center / 100% 100% no-repeat;
   margin-left: -1px;
+
+  &.is-flush {
+    padding-left: 0;
+  }
 }
 
 .web-home__pager {

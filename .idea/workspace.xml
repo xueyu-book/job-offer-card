@@ -5,8 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5fe094ee-6e06-4d8d-bcd0-7e67d277362f" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/src/components/web/CardShowcaseSection.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/web/CardShowcaseSection.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/content/cardShowcaseContent.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/content/cardShowcaseContent.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/assets/images/web/periphery/二维码跳转页面.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/images/web/periphery/qrcode.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/web/ClubManifestoSection.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/web/ClubManifestoSection.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/web/FaqSection.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/web/FaqSection.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/web/GameRulesSection.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/web/GameRulesSection.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/web/MerchShowcaseSection.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/web/MerchShowcaseSection.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/content/clubManifestoContent.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/content/clubManifestoContent.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/content/faqContent.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/content/faqContent.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/content/gameRulesContent.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/content/gameRulesContent.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/views/web/HomeView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/views/web/HomeView.vue" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -55,7 +61,7 @@
       <option name="presentableId" value="Default" />
       <updated>1785996908974</updated>
       <workItem from="1785996910294" duration="4486000" />
-      <workItem from="1787280923379" duration="2568000" />
+      <workItem from="1787280923379" duration="4867000" />
     </task>
     <servers />
   </component>
