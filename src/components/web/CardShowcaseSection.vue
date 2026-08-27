@@ -410,6 +410,8 @@ $wall-slide-duration: 2s;
 $wall-mechanism-easing: cubic-bezier(0.58, 0, 0.72, 0.82);
 $wall-seam-overlap: 1px;
 $card-reveal-duration: 0.75s;
+$scroller-height: 636px; // 两行卡片：300 * 2 + 36
+$interact-clip-pad: 40px;
 
 .web-section {
   width: 1298px;
@@ -436,9 +438,9 @@ $card-reveal-duration: 0.75s;
     $clip-pad: 120px;
     overflow: hidden;
     width: calc(100% + #{$clip-pad * 2});
-    height: calc(636px + #{$clip-pad});
-    margin: (-$clip-pad) (-$clip-pad) 0;
-    padding: $clip-pad $clip-pad 0;
+    height: calc(#{$scroller-height} + #{$clip-pad * 2});
+    margin: -$clip-pad;
+    padding: $clip-pad;
   }
 
   .card-showcase-section__item:not(.card-showcase-section__item--active) {
@@ -485,8 +487,10 @@ $card-reveal-duration: 0.75s;
 }
 
 .card-showcase-section__scroller {
-  width: 100%;
-  height: 636px; // 两行卡片：300 * 2 + 36
+  width: calc(100% + #{$interact-clip-pad * 2});
+  height: calc(#{$scroller-height} + #{$interact-clip-pad * 2});
+  margin: -$interact-clip-pad;
+  padding: $interact-clip-pad;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;

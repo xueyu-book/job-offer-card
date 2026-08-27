@@ -26,7 +26,7 @@
     </button>
     <a
       class="web-home__provision"
-      href="https://www.baidu.com"
+      :href="provisionPdf"
       target="_blank"
       rel="noopener noreferrer"
       aria-label="条款"
@@ -93,7 +93,7 @@
           />
           <img
             class="web-home__pager-dot"
-            :style="{ top: `${pagerDotTop}px` }"
+            :style="{ top: pagerDotTop }"
             src="@/assets/images/web/home/page_dot.svg"
             alt=""
             draggable="false"
@@ -128,14 +128,22 @@
       </div>
     </div>
 
-    <a
-      class="web-home__site"
-      href="https://www.theotherhandclub.com/"
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      WWW.THEOTHERHANDCLUB.COM
-    </a>
+    <div class="web-home__site">
+      <a
+        href="https://www.theotherhandclub.com/"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        WWW.THEOTHERHANDCLUB.COM
+      </a>
+      <a
+        href="https://www.xiaohongshu.com/user/profile/69fb3d8e0000000002001c08?xsec_token=ABpN3sUtBdDY6wccECFpZQ9qkfXazFRjUta0KNLon1ocY%3D&xsec_source=pc_search"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        SUPPORT
+      </a>
+    </div>
     <div
       class="web-home__backdrop"
       :class="{ active: activeCardId !== null }"
@@ -166,11 +174,13 @@ import tabIcon5Active from '@/assets/images/web/tabbar/5_active.svg'
 import navSfx from '@/assets/audio/nav.wav'
 import iconPlay from '@/assets/images/web/home/icon_play.svg'
 import iconMute from '@/assets/images/web/home/icon_mute.svg'
+import provisionPdf from '@/assets/TOHC-provision.pdf'
 import externalIcon1 from '@/assets/images/web/external-link/1.svg'
 import externalIcon2 from '@/assets/images/web/external-link/2.svg'
 import externalIcon3 from '@/assets/images/web/external-link/3.svg'
 import externalIcon4 from '@/assets/images/web/external-link/4.svg'
 import { getHtmlSfx, pauseAllHtmlAudio, playHtmlAudio, readMutedPreference, requestAudioPermission, requestMicrophonePermission, writeMutedPreference } from '@/utils/audio'
+import { pxToRem } from '@/utils/rem'
 
 const TAB_FLASH_COUNT = 2
 const TAB_FRAME_MS = 80
@@ -198,8 +208,8 @@ function setSectionRef(id, el) {
 
 const showPager = computed(() => activeTab.value !== 2)
 const isFlushContent = computed(() => activeTab.value === 3 || activeTab.value === 4 || activeTab.value === 5)
-const pagerDotTop = computed(
-  () => PAGE_DOT_TOP_MIN + pagerProgress.value * (PAGE_DOT_TOP_MAX - PAGE_DOT_TOP_MIN)
+const pagerDotTop = computed(() =>
+  pxToRem(PAGE_DOT_TOP_MIN + pagerProgress.value * (PAGE_DOT_TOP_MAX - PAGE_DOT_TOP_MIN))
 )
 const canPageUp = computed(
   () => activeCardId.value == null && pagerProgress.value > 0.001
@@ -435,13 +445,14 @@ onUnmounted(() => {
   position: absolute;
   top: 26px;
   left: 238px;
+  right: 238px;
   z-index: 2;
 }
 
 .web-home__mute,
 .web-home__provision {
   position: absolute;
-  right: 250px;
+  right: 54px;
   z-index: 100;
   width: 38px;
   height: 38px;
@@ -479,7 +490,7 @@ onUnmounted(() => {
   img {
     display: block;
     width: 100%;
-    height: 100%;
+    height: auto;
     max-width: none;
     object-fit: contain;
     pointer-events: none;
@@ -487,31 +498,29 @@ onUnmounted(() => {
 }
 
 .web-home__external--1 {
-  top: 716px;
-  left: 14px;
-  width: 216px;
-  height: 160px;
+  top: 162px;
+  right: -33px;
+  width: 260px;
+  z-index: 5;
 }
 
 .web-home__external--2 {
-  top: 832px;
-  left: -60px;
+  top: 835px;
+  left: -44px;
   width: 246px;
-  height: 290px;
+  z-index: 5;
 }
 
 .web-home__external--3 {
-  top: 202px;
-  right: -34px;
-  width: 254px;
-  height: 250px;
+  top: 687px;
+  left: 35px;
+  width: 255px;
 }
 
 .web-home__external--4 {
-  top: 468px;
-  right: 20px;
+  top: 317px;
+  right: 60px;
   width: 166px;
-  height: 148px;
 }
 
 .web-home__site {
@@ -520,16 +529,25 @@ onUnmounted(() => {
   left: 50%;
   transform: translateX(-50%);
   z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 22px;
   font-family: 'Nacelle', sans-serif;
   font-weight: 400;
   font-size: 10px;
   line-height: 1;
   color: #f8fafc;
   white-space: nowrap;
-  cursor: pointer;
+
+  a {
+    color: inherit;
+    cursor: pointer;
+  }
 }
 
 .web-home__container {
+  position: relative;
+  z-index: 4;
   display: flex;
   width: 1448px;
   height: 844px;

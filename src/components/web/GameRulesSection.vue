@@ -60,7 +60,7 @@
         </button>
         <img
           class="game-rules-section__rule-title"
-          src="@/assets/images/web/rule/rule_title.svg"
+          :src="ruleTitleSrc"
           alt="RULES 项目规则"
           draggable="false"
         />
@@ -70,7 +70,6 @@
           @scroll="onScroll"
         >
           <div class="game-rules-section__copy">
-            <p class="game-rules-section__role">{{ currentRules.role }}</p>
             <div
               v-for="(step, index) in currentRules.steps"
               :key="index"
@@ -107,6 +106,8 @@ import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { collectorRules, jobSeekerRules } from '@/content/gameRulesContent'
 import jobSeekerPlate from '@/assets/images/web/rule/job_seeker_plate.svg'
 import collectorPlate from '@/assets/images/web/rule/collector_plate.svg'
+import jobSeekerRuleTitle from '@/assets/images/web/rule/rule_title.svg'
+import collectorRuleTitle from '@/assets/images/web/rule/collector_rule_title.svg'
 
 const pagerProgress = inject('pagerProgress', null)
 const pagerOverflow = inject('pagerOverflow', null)
@@ -119,6 +120,9 @@ const currentRules = computed(() =>
 )
 const plateSrc = computed(() =>
   view.value === 'collector' ? collectorPlate : jobSeekerPlate
+)
+const ruleTitleSrc = computed(() =>
+  view.value === 'collector' ? collectorRuleTitle : jobSeekerRuleTitle
 )
 
 function openRules(nextView) {
@@ -345,16 +349,6 @@ defineExpose({
   text-align: center;
 }
 
-.game-rules-section__role {
-  margin-bottom: 28px;
-  font-family: 'Dream Han Sans W12', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
-  font-size: 24px;
-  font-weight: 400;
-  line-height: 1.35;
-  text-align: center;
-  color: #f3e90e;
-}
-
 .game-rules-section__step,
 .game-rules-section__notes {
   margin-bottom: 28px;
@@ -376,7 +370,7 @@ defineExpose({
   font-weight: 400;
   line-height: 1.35;
   text-align: center;
-  color: #f1f1f1;
+  color: #fff000;
 }
 
 .game-rules-section__step-body {

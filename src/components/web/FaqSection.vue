@@ -33,17 +33,31 @@
             >
               A：{{ paragraph }}
             </p>
-            <div v-if="item.rates?.length" class="faq-section__rates">
-              <p
-                v-for="(row, rowIndex) in item.rates"
-                :key="rowIndex"
-                class="faq-section__rate"
-              >
-                <span>{{ row[0] }}</span>
-                <span>{{ row[1] }}</span>
-                <span>{{ row[2] }}</span>
-              </p>
-            </div>
+            <table v-if="item.table" class="faq-section__table">
+              <thead>
+                <tr>
+                  <th
+                    v-for="(header, headerIndex) in item.table.headers"
+                    :key="headerIndex"
+                  >
+                    {{ header }}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="(row, rowIndex) in item.table.rows"
+                  :key="rowIndex"
+                >
+                  <td
+                    v-for="(cell, cellIndex) in row"
+                    :key="cellIndex"
+                  >
+                    {{ cell }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
             <p
               v-for="(paragraph, paragraphIndex) in item.after || []"
               :key="`after-${paragraphIndex}`"
@@ -53,7 +67,7 @@
             </p>
           </article>
           <p class="faq-section__contact">
-            {{ faqContact.before }}<a :href="`mailto:${faqContact.email}`">{{ faqContact.email }}</a>
+            {{ faqContact.before }}<a :href="`mailto:${faqContact.email}`">{{ faqContact.email }}</a>。
           </p>
         </div>
       </div>
@@ -213,12 +227,11 @@ defineExpose({
   font-size: 24px;
   font-weight: 400;
   line-height: 1.45;
-  color: #f1f1f1;
+  color: #fff000;
 }
 
 .faq-section__answer,
-.faq-section__contact,
-.faq-section__rate {
+.faq-section__contact {
   font-family: 'Dream Han Sans W5', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
   font-size: 24px;
   font-weight: 400;
@@ -226,14 +239,29 @@ defineExpose({
   color: #f1f1f1;
 }
 
-.faq-section__rates {
-  margin: 12px 0;
+.faq-section__table {
+  width: 100%;
+  max-width: 520px;
+  margin: 16px 0 20px;
+  border-collapse: collapse;
+  font-family: 'Dream Han Sans W5', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1.45;
+  color: #f1f1f1;
 }
 
-.faq-section__rate {
-  display: grid;
-  grid-template-columns: 4.5em 3em 1fr;
-  column-gap: 24px;
+.faq-section__table th,
+.faq-section__table td {
+  padding: 8px 16px;
+  border: 1px solid rgba(241, 241, 241, 0.45);
+  text-align: left;
+  white-space: pre-wrap;
+}
+
+.faq-section__table th {
+  font-family: 'Dream Han Sans W12', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+  color: #fff000;
 }
 
 .faq-section__contact {

@@ -210,7 +210,7 @@ defineExpose({
   font-size: 24px;
   font-weight: 400;
   line-height: 1.45;
-  color: #f1f1f1;
+  color: #fff000;
 }
 
 .club-manifesto-section__body {

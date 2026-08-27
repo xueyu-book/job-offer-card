@@ -35,8 +35,13 @@
               <span class="card__info-side">¥:{{ displayPrize }}</span>
             </template>
             <template v-else>
-              <span class="card__info-line">购卡请前往小红书账号</span>
-              <span class="card__info-line">TheOtherHandClub</span>
+              <a
+                class="card__info-link"
+                href="https://www.xiaohongshu.com/user/profile/69fb3d8e0000000002001c08?xsec_token=ABpN3sUtBdDY6wccECFpZQ9qkfXazFRjUta0KNLon1ocY%3D&xsec_source=pc_search"
+                target="_blank"
+                rel="noopener noreferrer"
+                @click.stop
+              >点此跳转购卡</a>
             </template>
           </div>
           <div class="card__body">
@@ -446,9 +451,16 @@ onUnmounted(() => {
 
 .card__info-line,
 .card__info-text,
-.card__info-side {
+.card__info-side,
+.card__info-link {
   display: block;
   white-space: nowrap;
+}
+
+.card__info-link {
+  color: inherit;
+  pointer-events: auto;
+  cursor: pointer;
 }
 
 .card__body {

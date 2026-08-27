@@ -1,83 +1,42 @@
 <template>
   <section class="web-section merch-showcase-section">
-    <img
+    <a
       class="merch-showcase-section__banner"
-      src="@/assets/images/web/periphery/1.svg"
-      alt=""
-      draggable="false"
-      @click="openQrcode"
-    />
+      :href="merchHref"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="前往小红书"
+    >
+      <img
+        src="@/assets/images/web/periphery/1.svg"
+        alt=""
+        draggable="false"
+      />
+    </a>
     <div class="merch-showcase-section__row">
-      <img
+      <a
+        v-for="src in merchItems"
+        :key="src"
         class="merch-showcase-section__item"
-        src="@/assets/images/web/periphery/2.svg"
-        alt=""
-        draggable="false"
-        @click="openQrcode"
-      />
-      <img
-        class="merch-showcase-section__item"
-        src="@/assets/images/web/periphery/3.svg"
-        alt=""
-        draggable="false"
-        @click="openQrcode"
-      />
-      <img
-        class="merch-showcase-section__item"
-        src="@/assets/images/web/periphery/4.svg"
-        alt=""
-        draggable="false"
-        @click="openQrcode"
-      />
-    </div>
-    <Teleport to="body">
-      <div
-        v-if="qrcodeVisible"
-        class="merch-qrcode"
-        role="dialog"
-        aria-modal="true"
-        aria-label="二维码"
-        @click.self="closeQrcode"
+        :href="merchHref"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="前往小红书"
       >
-        <img
-          class="merch-qrcode__image"
-          src="@/assets/images/web/periphery/qrcode.svg"
-          alt="二维码"
-          draggable="false"
-        />
-      </div>
-    </Teleport>
+        <img :src="src" alt="" draggable="false" />
+      </a>
+    </div>
   </section>
 </template>
 
 <script setup>
-import { onUnmounted, ref, watch } from 'vue'
+import merchItem2 from '@/assets/images/web/periphery/2.svg'
+import merchItem3 from '@/assets/images/web/periphery/3.svg'
+import merchItem4 from '@/assets/images/web/periphery/4.svg'
 
-const qrcodeVisible = ref(false)
-
-function openQrcode() {
-  qrcodeVisible.value = true
-}
-
-function closeQrcode() {
-  qrcodeVisible.value = false
-}
-
-function onEscape(event) {
-  if (event.key === 'Escape') closeQrcode()
-}
-
-watch(qrcodeVisible, (visible) => {
-  if (visible) {
-    window.addEventListener('keydown', onEscape)
-    return
-  }
-  window.removeEventListener('keydown', onEscape)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('keydown', onEscape)
-})
+const merchHref =
+  'https://www.xiaohongshu.com/user/profile/69fb3d8e0000000002001c08?xsec_token=ABpN3sUtBdDY6wccECFpZQ9qkfXazFRjUta0KNLon1ocY%3D&xsec_source=pc_search'
+const merchItems = [merchItem2, merchItem3, merchItem4]
 </script>
 
 <style scoped lang="scss">
@@ -98,6 +57,14 @@ onUnmounted(() => {
 .merch-showcase-section__banner,
 .merch-showcase-section__item {
   cursor: pointer;
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    pointer-events: none;
+  }
 }
 
 .merch-showcase-section__banner {
@@ -120,21 +87,5 @@ onUnmounted(() => {
   width: 424px;
   height: 366px;
   flex-shrink: 0;
-}
-
-.merch-qrcode {
-  position: fixed;
-  inset: 0;
-  z-index: 200;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(2, 6, 23, 0.55);
-}
-
-.merch-qrcode__image {
-  display: block;
-  width: 350px;
-  height: auto;
 }
 </style>

@@ -98,6 +98,10 @@ onUnmounted(() => {
   gap: 8px;
 }
 
+.flip-countdown__unit:nth-child(3) {
+  margin-left: auto;
+}
+
 .flip-countdown__label {
   position: absolute;
   top: 86px;
