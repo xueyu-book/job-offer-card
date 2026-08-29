@@ -213,54 +213,60 @@ $slide-distance: 56px;
   .icon-deco-1 {
     position: absolute;
     left: 0;
-    top: calc(50% - 522px);
-    width: 680px;
+    top: calc(50% - 436px);
+    width: 566px;
+    height: 872px;
     animation: splash-in-from-left $stage-duration $stage-ease $stage-1-delay both;
   }
 
   .icon-deco-2 {
     position: absolute;
-    left: 382px;
-    top: calc(50% - 320px);
-    width: 410px;
+    left: 318px;
+    top: calc(50% - 269px);
+    width: 342px;
+    height: 538px;
     animation: splash-in-from-left $stage-duration $stage-ease $stage-2-delay both;
   }
 
   .icon-deco-3 {
     position: absolute;
-    left: 646px;
-    top: calc(50% - 225px);
-    width: 290px;
+    left: 535px;
+    top: calc(50% - 191px);
+    width: 246px;
+    height: 382px;
     animation: splash-in-from-left $stage-duration $stage-ease $stage-3-delay both;
   }
 
   .icon-deco-4 {
     position: absolute;
-    right: 646px;
-    top: calc(50% - 225px);
-    width: 290px;
+    right: 535px;
+    top: calc(50% - 191px);
+    width: 246px;
+    height: 382px;
     animation: splash-in-from-right $stage-duration $stage-ease $stage-3-delay both;
   }
 
   .icon-deco-5 {
     position: absolute;
-    right: 382px;
-    top: calc(50% - 320px);
-    width: 410px;
+    right: 318px;
+    top: calc(50% - 269px);
+    width: 342px;
+    height: 538px;
     animation: splash-in-from-right $stage-duration $stage-ease $stage-2-delay both;
   }
 
   .icon-deco-6 {
     position: absolute;
     right: 0;
-    top: calc(50% - 522px);
-    width: 680px;
+    top: calc(50% - 436px);
+    width: 566px;
+    height: 872px;
     animation: splash-in-from-right $stage-duration $stage-ease $stage-1-delay both;
   }
 
   .icon-logo {
     position: absolute;
-    bottom: 40%;
+    top: calc(50% - 43px);
     left: 0;
     right: 0;
     margin: 0 auto;
