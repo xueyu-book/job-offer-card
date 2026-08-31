@@ -4,28 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5fe094ee-6e06-4d8d-bcd0-7e67d277362f" name="Changes" comment="">
+    <list default="true" id="5fe094ee-6e06-4d8d-bcd0-7e67d277362f" name="Changes" comment="开屏动画调整">
       <change beforePath="$PROJECT_DIR$/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/card/3.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/images/web/card/3.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/faq/plate.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/images/web/faq/plate.svg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/home/card_bg.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/images/web/home/card_bg.svg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/periphery/2.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/images/web/periphery/2.svg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/periphery/3.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/images/web/periphery/3.svg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/periphery/4.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/images/web/periphery/4.svg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/rule/rule_title.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/images/web/rule/rule_title.svg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/tabbar/3.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/images/web/tabbar/3.svg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assets/images/web/tabbar/3_active.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/images/web/tabbar/3_active.svg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/web/CardShowcaseSection.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/web/CardShowcaseSection.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/web/ClubManifestoSection.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/web/ClubManifestoSection.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/web/FaqSection.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/web/FaqSection.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/web/FlipCountdown.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/web/FlipCountdown.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/web/GameRulesSection.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/web/GameRulesSection.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/web/MerchShowcaseSection.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/web/MerchShowcaseSection.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/web/ShowcaseOfferCard.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/web/ShowcaseOfferCard.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/content/clubManifestoContent.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/content/clubManifestoContent.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/content/faqContent.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/content/faqContent.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/content/gameRulesContent.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/content/gameRulesContent.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/views/web/HomeView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/views/web/HomeView.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/postcss.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/postcss.config.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/web/SplashScreen.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/web/SplashScreen.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/utils/device.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils/device.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/utils/rem.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils/rem.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/views/mobile/HomeView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/views/mobile/HomeView.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vite.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/vite.config.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -74,11 +60,24 @@
       <updated>1785996908974</updated>
       <workItem from="1785996910294" duration="4486000" />
       <workItem from="1787280923379" duration="4867000" />
-      <workItem from="1787647352268" duration="604000" />
+      <workItem from="1787647352268" duration="2481000" />
     </task>
+    <task id="LOCAL-00001" summary="开屏动画调整">
+      <option name="closed" value="true" />
+      <created>1787972694955</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1787972694955</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="开屏动画调整" />
+    <option name="LAST_COMMIT_MESSAGE" value="开屏动画调整" />
   </component>
 </project>

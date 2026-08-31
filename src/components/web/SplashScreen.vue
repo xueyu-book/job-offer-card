@@ -4,11 +4,15 @@
       v-if="visible"
       :key="playKey"
       class="splash-screen"
-      :class="{ 'splash-screen--mobile': isMobile }"
+      :class="{
+        'splash-screen--mobile': isMobile,
+        'splash-screen--leaving': leaving
+      }"
       role="dialog"
       aria-modal="true"
       aria-label="开屏"
     >
+      <div class="splash-screen__stage" aria-hidden="true" />
       <img
         class="icon-deco-1"
         src="@/assets/images/splash/1.svg"
@@ -60,16 +64,36 @@ import { isMobileDevice } from '@/utils/device'
 const emit = defineEmits(['done'])
 
 const DURATION_MS = 2000
+const LEAVE_MS = 220
+const THEME_COLOR_PAGE = '#ffffff'
+const THEME_COLOR_SPLASH = '#7b00ff'
 
 const visible = ref(true)
+const leaving = ref(false)
 const playKey = ref(0)
 const isMobile = ref(isMobileDevice())
 let closeTimer = null
+let leaveTimer = null
 let doneEmitted = false
+
+function setThemeColor(color) {
+  if (typeof document === 'undefined') return
+
+  // 移除后重建，促使 Safari 重新采样顶底栏颜色
+  document.querySelectorAll('meta[name="theme-color"]').forEach((meta) => {
+    meta.remove()
+  })
+
+  const meta = document.createElement('meta')
+  meta.name = 'theme-color'
+  meta.content = color
+  document.head.appendChild(meta)
+}
 
 function emitDone() {
   if (doneEmitted) return
   doneEmitted = true
+  setThemeColor(THEME_COLOR_PAGE)
   emit('done')
 }
 
@@ -78,22 +102,38 @@ function clearCloseTimer() {
     window.clearTimeout(closeTimer)
     closeTimer = null
   }
+  if (leaveTimer !== null) {
+    window.clearTimeout(leaveTimer)
+    leaveTimer = null
+  }
+}
+
+function hideSplash() {
+  leaving.value = true
+  leaveTimer = window.setTimeout(() => {
+    visible.value = false
+    leaving.value = false
+    leaveTimer = null
+    emitDone()
+  }, LEAVE_MS)
 }
 
 function scheduleClose() {
   clearCloseTimer()
   closeTimer = window.setTimeout(() => {
-    visible.value = false
     closeTimer = null
-    emitDone()
+    hideSplash()
   }, DURATION_MS)
 }
 
 function startSplash() {
   clearCloseTimer()
   doneEmitted = false
+  leaving.value = false
   playKey.value += 1
   visible.value = true
+  // 移动端始终白顶底栏；桌面开屏可用紫色主题
+  setThemeColor(isMobile.value ? THEME_COLOR_PAGE : THEME_COLOR_SPLASH)
   scheduleClose()
 }
 
@@ -113,6 +153,7 @@ function onPrerenderingChange() {
 
 onMounted(() => {
   window.addEventListener('pageshow', onPageShow)
+  setThemeColor(isMobile.value ? THEME_COLOR_PAGE : THEME_COLOR_SPLASH)
 
   if (document.prerendering) {
     // 预渲染期间只遮罩，不启动关闭计时，等真正展示时再播动画
@@ -128,6 +169,9 @@ onBeforeUnmount(() => {
   clearCloseTimer()
   window.removeEventListener('pageshow', onPageShow)
   document.removeEventListener('prerenderingchange', onPrerenderingChange)
+  visible.value = false
+  leaving.value = false
+  setThemeColor(THEME_COLOR_PAGE)
   emitDone()
 })
 </script>
@@ -198,12 +242,45 @@ $slide-distance: 56px;
   position: fixed;
   inset: 0;
   z-index: 10001;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
   background: #7b00ff;
   overflow: hidden;
+  opacity: 1;
+  transition: opacity 0.22s ease;
+
+  &--leaving {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  // 移动端：外层白底留给 Safari 顶底栏采样；紫色只铺在中间舞台
+  &--mobile {
+    background: #ffffff;
+
+    .splash-screen__stage {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      background: #7b00ff;
+      pointer-events: none;
+    }
+  }
+
+  .splash-screen__stage {
+    display: none;
+  }
+
+  &--mobile .splash-screen__stage {
+    display: block;
+  }
 
   img {
+    position: relative;
+    z-index: 1;
     max-width: none;
     opacity: 0;
     backface-visibility: hidden;

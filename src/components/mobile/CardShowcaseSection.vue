@@ -1,0 +1,492 @@
+<template>
+  <section
+    class="mobile-section card-showcase-section"
+    :class="{ active: activeCardId !== null }"
+  >
+    <div
+      v-if="!wallSettled"
+      class="card-showcase-section__wall"
+      :class="{ 'card-showcase-section__wall--sliding': wallSliding }"
+      aria-hidden="true"
+    >
+      <img
+        class="card-showcase-section__wall-panel card-showcase-section__wall-panel--top"
+        src="@/assets/images/mobile/home/wall_top.svg"
+        alt=""
+      />
+      <img
+        class="card-showcase-section__wall-panel card-showcase-section__wall-panel--bottom"
+        src="@/assets/images/mobile/home/wall_bottom.svg"
+        alt=""
+      />
+    </div>
+    <div
+      ref="scrollerRef"
+      class="card-showcase-section__scroller"
+      @scroll="onScroll"
+    >
+      <div class="card-showcase-section__grid">
+        <div
+          v-for="(card, index) in cardList"
+          :key="card.id"
+          class="card-showcase-section__item"
+          :class="{
+            'card-showcase-section__item--revealed': cardsRevealed,
+            'card-showcase-section__item--settled': cardsSettled,
+            'card-showcase-section__item--active': activeCardId === card.id
+          }"
+          :style="getCardItemStyle(index)"
+        >
+          <ShowcaseOfferCard
+            :id="card.id"
+            :serial="card.serial"
+            :price="card.price"
+            :rate="card.rate"
+            :prize="card.prize"
+            :date="card.date"
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+</template>
+
+<script setup>
+import { inject, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import ShowcaseOfferCard from './ShowcaseOfferCard.vue'
+import { cardList } from '@/content/cardShowcaseContent'
+import wallSfx from '@/assets/audio/wall.mp3'
+import { getAudioContext, requestAudioPermission } from '@/utils/audio'
+
+const CARD_HEIGHT = 152
+const ROW_GAP = 21
+const ROW_STEP = CARD_HEIGHT + ROW_GAP
+const WALL_SLIDE_DURATION_MS = 2000
+const CARD_GRID_COLUMNS = 2
+const CARD_REVEAL_STAGGER_ROW_MS = 55
+const CARD_REVEAL_STAGGER_COL_MS = 30
+const CARD_REVEAL_DURATION_MS = 750
+
+const activeCardId = inject('activeCardId', ref(null))
+const splashDone = inject('splashDone', ref(true))
+const muted = inject('muted', ref(true))
+const scrollerRef = ref(null)
+const wallSliding = ref(false)
+const wallSettled = ref(false)
+const cardsRevealed = ref(false)
+const cardsSettled = ref(false)
+
+const AUDIO_UNLOCK_EVENTS = ['pointerdown', 'touchstart', 'keydown']
+
+let snapTimer = null
+let programmatic = false
+let programmaticTimer = null
+let wallSettleTimer = null
+let cardSettleTimer = null
+let revealFrame = null
+let wallAudioBuffer = null
+let wallAudioSource = null
+let wallSoundPlaying = false
+let wallSoundStarted = false
+let pendingWallSound = false
+let audioUnlockBound = false
+
+function getCardItemStyle(index) {
+  const row = Math.floor(index / CARD_GRID_COLUMNS)
+  const col = index % CARD_GRID_COLUMNS
+
+  return {
+    '--card-reveal-delay': `${row * CARD_REVEAL_STAGGER_ROW_MS + col * CARD_REVEAL_STAGGER_COL_MS}ms`
+  }
+}
+
+function getCardRevealTotalMs() {
+  const lastIndex = Math.max(cardList.length - 1, 0)
+  const row = Math.floor(lastIndex / CARD_GRID_COLUMNS)
+  const col = lastIndex % CARD_GRID_COLUMNS
+  return (
+    row * CARD_REVEAL_STAGGER_ROW_MS +
+    col * CARD_REVEAL_STAGGER_COL_MS +
+    CARD_REVEAL_DURATION_MS
+  )
+}
+
+function resetCardsReveal() {
+  cardsRevealed.value = false
+  cardsSettled.value = false
+
+  if (revealFrame) {
+    cancelAnimationFrame(revealFrame)
+    revealFrame = null
+  }
+  if (cardSettleTimer !== null) {
+    window.clearTimeout(cardSettleTimer)
+    cardSettleTimer = null
+  }
+}
+
+function triggerCardsReveal() {
+  resetCardsReveal()
+
+  nextTick(() => {
+    revealFrame = requestAnimationFrame(() => {
+      revealFrame = requestAnimationFrame(() => {
+        cardsRevealed.value = true
+        revealFrame = null
+        cardSettleTimer = window.setTimeout(() => {
+          cardsSettled.value = true
+          cardSettleTimer = null
+        }, getCardRevealTotalMs())
+      })
+    })
+  })
+}
+
+function clampScrollTop(top) {
+  const el = scrollerRef.value
+  if (!el) return 0
+  const max = Math.max(el.scrollHeight - el.clientHeight, 0)
+  return Math.min(Math.max(0, top), max)
+}
+
+function nearestRowTop(scrollTop) {
+  return clampScrollTop(Math.round(scrollTop / ROW_STEP) * ROW_STEP)
+}
+
+function scrollToTop(top, behavior = 'smooth') {
+  const el = scrollerRef.value
+  if (!el) return
+
+  const next = clampScrollTop(top)
+  if (Math.abs(el.scrollTop - next) < 1) return
+
+  programmatic = true
+  clearTimeout(programmaticTimer)
+  el.scrollTo({ top: next, behavior })
+  programmaticTimer = setTimeout(() => {
+    programmatic = false
+  }, behavior === 'smooth' ? 450 : 0)
+}
+
+function snapToNearestRow() {
+  const el = scrollerRef.value
+  if (!el || programmatic || activeCardId.value != null) return
+
+  const target = nearestRowTop(el.scrollTop)
+  if (Math.abs(el.scrollTop - target) < 1) return
+  scrollToTop(target)
+}
+
+function scheduleSnap() {
+  if (programmatic || activeCardId.value != null) return
+  clearTimeout(snapTimer)
+  snapTimer = setTimeout(snapToNearestRow, 180)
+}
+
+function onScroll() {
+  scheduleSnap()
+}
+
+function onScrollEnd() {
+  clearTimeout(snapTimer)
+  snapToNearestRow()
+}
+
+function getWallAudioContext() {
+  return getAudioContext()
+}
+
+function loadWallAudioBuffer() {
+  const ctx = getWallAudioContext()
+  if (!ctx || wallAudioBuffer) return
+
+  fetch(wallSfx)
+    .then((response) => response.arrayBuffer())
+    .then((data) => ctx.decodeAudioData(data))
+    .then((buffer) => {
+      wallAudioBuffer = buffer
+      if (pendingWallSound) playWallAudio()
+    })
+    .catch(() => {})
+}
+
+function markWallSoundPending() {
+  pendingWallSound = !wallSettled.value
+}
+
+function unlockWallAudio() {
+  if (wallSoundPlaying) return
+  requestAudioPermission()
+}
+
+function stopWallAudio() {
+  if (!wallAudioSource) return
+
+  try {
+    wallAudioSource.stop()
+  } catch {
+    // 已结束的 source 再 stop 会抛错
+  }
+  wallAudioSource.disconnect()
+  wallAudioSource = null
+}
+
+function playWallAudio() {
+  if (muted.value) return
+
+  const ctx = getWallAudioContext()
+  if (!ctx || !wallAudioBuffer) {
+    markWallSoundPending()
+    return
+  }
+
+  if (ctx.state !== 'running') {
+    markWallSoundPending()
+    ctx.resume().then(() => {
+      if (pendingWallSound && ctx.state === 'running') playWallAudio()
+    }).catch(markWallSoundPending)
+    return
+  }
+
+  try {
+    stopWallAudio()
+    const source = ctx.createBufferSource()
+    source.buffer = wallAudioBuffer
+    source.connect(ctx.destination)
+    source.onended = () => {
+      if (wallAudioSource === source) wallAudioSource = null
+      wallSoundPlaying = false
+    }
+    source.start(0)
+    wallAudioSource = source
+    wallSoundPlaying = true
+    wallSoundStarted = true
+    pendingWallSound = false
+  } catch {
+    wallSoundPlaying = false
+    markWallSoundPending()
+  }
+}
+
+function onAudioUnlockGesture() {
+  if (wallSettled.value) return
+
+  unlockWallAudio()
+
+  if (pendingWallSound || (splashDone.value && !wallSoundStarted)) {
+    playWallAudio()
+  }
+}
+
+function bindAudioUnlock() {
+  if (audioUnlockBound || typeof window === 'undefined') return
+
+  audioUnlockBound = true
+  AUDIO_UNLOCK_EVENTS.forEach((eventName) => {
+    window.addEventListener(eventName, onAudioUnlockGesture, {
+      capture: true,
+      passive: true
+    })
+  })
+}
+
+function unbindAudioUnlock() {
+  if (!audioUnlockBound || typeof window === 'undefined') return
+
+  audioUnlockBound = false
+  AUDIO_UNLOCK_EVENTS.forEach((eventName) => {
+    window.removeEventListener(eventName, onAudioUnlockGesture, { capture: true })
+  })
+}
+
+function startWallSplit() {
+  if (wallSliding.value || wallSettled.value) return
+
+  wallSoundStarted = false
+  playWallAudio()
+  triggerCardsReveal()
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      wallSliding.value = true
+      wallSettleTimer = window.setTimeout(() => {
+        wallSettled.value = true
+        pendingWallSound = false
+        wallSettleTimer = null
+      }, WALL_SLIDE_DURATION_MS)
+    })
+  })
+}
+
+loadWallAudioBuffer()
+bindAudioUnlock()
+
+watch(
+  splashDone,
+  (done) => {
+    if (done) startWallSplit()
+  },
+  { immediate: true }
+)
+
+watch(muted, (isMuted) => {
+  if (isMuted) {
+    stopWallAudio()
+    wallSoundPlaying = false
+    pendingWallSound = false
+    return
+  }
+
+  if (splashDone.value && !wallSettled.value && !wallSoundStarted) {
+    playWallAudio()
+  }
+})
+
+onMounted(() => {
+  scrollerRef.value?.addEventListener('scrollend', onScrollEnd)
+})
+
+onUnmounted(() => {
+  scrollerRef.value?.removeEventListener('scrollend', onScrollEnd)
+  clearTimeout(snapTimer)
+  clearTimeout(programmaticTimer)
+  if (wallSettleTimer !== null) {
+    window.clearTimeout(wallSettleTimer)
+  }
+  resetCardsReveal()
+  unbindAudioUnlock()
+  pendingWallSound = false
+  wallSoundPlaying = false
+  wallSoundStarted = false
+  stopWallAudio()
+  wallAudioBuffer = null
+})
+</script>
+
+<style scoped lang="scss">
+$wall-slide-duration: 2s;
+$wall-mechanism-easing: cubic-bezier(0.58, 0, 0.72, 0.82);
+$wall-seam-overlap: 1px;
+$card-reveal-duration: 0.75s;
+
+.mobile-section {
+  width: 297px;
+  height: 489px;
+  flex-shrink: 0;
+  background-color: #251714;
+  background-image: url('@/assets/images/mobile/home/section.svg');
+  background-position: center center;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+
+.card-showcase-section {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 12px;
+  position: relative;
+}
+
+.card-showcase-section.active {
+  z-index: 120;
+  overflow: visible;
+
+  .card-showcase-section__scroller {
+    overflow: hidden;
+  }
+
+  .card-showcase-section__item:not(.card-showcase-section__item--active) {
+    pointer-events: none;
+  }
+}
+
+.card-showcase-section__wall {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.card-showcase-section__wall-panel {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: calc(50% + #{$wall-seam-overlap});
+  object-fit: fill;
+  user-select: none;
+  pointer-events: none;
+  will-change: transform;
+  transition: transform $wall-slide-duration $wall-mechanism-easing;
+
+  &--top {
+    top: 0;
+  }
+
+  &--bottom {
+    bottom: 0;
+  }
+}
+
+.card-showcase-section__wall--sliding {
+  .card-showcase-section__wall-panel--top {
+    transform: translateY(-100%);
+  }
+
+  .card-showcase-section__wall-panel--bottom {
+    transform: translateY(100%);
+  }
+}
+
+.card-showcase-section__scroller {
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.card-showcase-section__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 95px);
+  gap: 21px 42px;
+  justify-content: center;
+  position: relative;
+  transform-style: preserve-3d;
+}
+
+.card-showcase-section__item {
+  width: 95px;
+  height: 152px;
+  transform-style: preserve-3d;
+  opacity: 0;
+  transform: translateX(-8px) scale(0.92);
+  transition:
+    opacity $card-reveal-duration ease-out,
+    transform $card-reveal-duration cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--card-reveal-delay, 0ms), var(--card-reveal-delay, 0ms);
+}
+
+.card-showcase-section__item--revealed {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+}
+
+.card-showcase-section__item--settled {
+  transform: none;
+  transition: none;
+}
+
+.card-showcase-section__item--active {
+  z-index: 1;
+  overflow: visible;
+}
+</style>

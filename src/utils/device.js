@@ -11,6 +11,14 @@ const TABLET_UA = /iPad|Tablet|Android(?!.*Mobile)/i
 export function isMobileDevice() {
   if (typeof window === 'undefined') return false
 
+  try {
+    if (new URLSearchParams(window.location.search).get('device') === 'mobile') {
+      return true
+    }
+  } catch {
+    // ignore
+  }
+
   const ua = navigator.userAgent || ''
   if (TABLET_UA.test(ua)) return false
   if (MOBILE_UA.test(ua)) return true

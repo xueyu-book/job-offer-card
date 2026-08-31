@@ -6,7 +6,7 @@ import postcssPxToRem from 'postcss-pxtorem'
 
 /** PC 设计稿 1920 → 192；移动端设计稿 375 → 37.5 */
 function rootValue({ file } = {}) {
-  if (file && /[/\\]views[/\\]mobile[/\\]/.test(file)) {
+  if (file && /[/\\](views|components)[/\\]mobile[/\\]/.test(file)) {
     return 37.5
   }
   return 192

@@ -5,8 +5,9 @@ export const PC_DESIGN_WIDTH = 1920
 export const PC_DESIGN_HEIGHT = 1080
 export const PC_ROOT_VALUE = 192
 
-/** 移动端：375 设计稿，37.5px = 1rem */
+/** 移动端：375×667 设计稿，37.5px = 1rem */
 export const MOBILE_DESIGN_WIDTH = 375
+export const MOBILE_DESIGN_HEIGHT = 667
 export const MOBILE_ROOT_VALUE = 37.5
 
 export function pxToRem(px, device = getDeviceTypeForRem()) {
@@ -22,7 +23,11 @@ function setRootFontSize() {
   const { clientWidth, clientHeight } = document.documentElement
 
   if (isMobileDevice()) {
-    const scale = clientWidth / MOBILE_DESIGN_WIDTH
+    // 宽高同时适配，避免短视口（含 Safari 底栏）把页面撑出滚动
+    const scale = Math.min(
+      clientWidth / MOBILE_DESIGN_WIDTH,
+      clientHeight / MOBILE_DESIGN_HEIGHT
+    )
     document.documentElement.style.fontSize = `${MOBILE_ROOT_VALUE * scale}px`
     return
   }

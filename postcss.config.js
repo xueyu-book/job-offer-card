@@ -3,7 +3,7 @@ import postcssPxToRem from 'postcss-pxtorem'
 
 /** PC 设计稿 1920px，192px = 1rem；mobile 目录下按 375 设计稿，37.5px = 1rem */
 function rootValue({ file } = {}) {
-  if (file && /[/\\]views[/\\]mobile[/\\]/.test(file)) {
+  if (file && /[/\\](views|components)[/\\]mobile[/\\]/.test(file)) {
     return 37.5
   }
   return 192
