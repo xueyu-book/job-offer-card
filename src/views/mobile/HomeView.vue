@@ -96,6 +96,7 @@
       @click="setActiveCardId(null)"
     />
   </main>
+  
 </template>
 
 <script setup>
