@@ -2,15 +2,7 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { fileURLToPath, URL } from 'node:url'
 import autoprefixer from 'autoprefixer'
-import postcssPxToRem from 'postcss-pxtorem'
-
-/** PC 设计稿 1920 → 192；移动端设计稿 375 → 37.5 */
-function rootValue({ file } = {}) {
-  if (file && /[/\\](views|components)[/\\]mobile[/\\]/.test(file)) {
-    return 37.5
-  }
-  return 192
-}
+import postcssPxToRem, { mobileAwareRootValue } from './src/utils/postcssPxToRem.js'
 
 export default defineConfig({
   plugins: [vue()],
@@ -26,9 +18,8 @@ export default defineConfig({
       plugins: [
         autoprefixer(),
         postcssPxToRem({
-          rootValue,
+          rootValue: mobileAwareRootValue,
           unitPrecision: 5,
-          propList: ['*'],
           minPixelValue: 1,
           exclude: /node_modules/i
         })

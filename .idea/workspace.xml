@@ -4,15 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5fe094ee-6e06-4d8d-bcd0-7e67d277362f" name="Changes" comment="开屏动画调整">
-      <change beforePath="$PROJECT_DIR$/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/postcss.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/postcss.config.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/web/SplashScreen.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/web/SplashScreen.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/utils/device.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils/device.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/utils/rem.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils/rem.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/views/mobile/HomeView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/views/mobile/HomeView.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vite.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/vite.config.js" afterDir="false" />
-    </list>
+    <list default="true" id="5fe094ee-6e06-4d8d-bcd0-7e67d277362f" name="Changes" comment="开屏动画调整" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -60,7 +52,7 @@
       <updated>1785996908974</updated>
       <workItem from="1785996910294" duration="4486000" />
       <workItem from="1787280923379" duration="4867000" />
-      <workItem from="1787647352268" duration="2481000" />
+      <workItem from="1787647352268" duration="3074000" />
     </task>
     <task id="LOCAL-00001" summary="开屏动画调整">
       <option name="closed" value="true" />

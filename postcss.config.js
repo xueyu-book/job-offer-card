@@ -1,21 +1,13 @@
 import autoprefixer from 'autoprefixer'
-import postcssPxToRem from 'postcss-pxtorem'
+import postcssPxToRem, { mobileAwareRootValue } from './src/utils/postcssPxToRem.js'
 
-/** PC 设计稿 1920px，192px = 1rem；mobile 目录下按 375 设计稿，37.5px = 1rem */
-function rootValue({ file } = {}) {
-  if (file && /[/\\](views|components)[/\\]mobile[/\\]/.test(file)) {
-    return 37.5
-  }
-  return 192
-}
-
+/** PC 设计稿 1920px → 192；mobile 目录按 375 设计稿 → 37.5 */
 export default {
   plugins: [
     autoprefixer(),
     postcssPxToRem({
-      rootValue,
+      rootValue: mobileAwareRootValue,
       unitPrecision: 5,
-      propList: ['*'],
       minPixelValue: 1,
       exclude: /node_modules/i
     })
