@@ -44,6 +44,59 @@ export function writeMutedPreference(muted) {
 const htmlAudios = new Map()
 
 let audioContext = null
+let gestureUnlocked = false
+let wechatBridgeBound = false
+
+export function isAudioGestureUnlocked() {
+  return gestureUnlocked
+}
+
+export function isWeChatBrowser() {
+  if (typeof navigator === 'undefined') return false
+  return /MicroMessenger/i.test(navigator.userAgent || '')
+}
+
+/**
+ * 微信内刷新后无用户手势也能播音频的常见解锁方式。
+ * 在 WeixinJSBridge 回调里执行 playFn。
+ */
+export function runWithWeChatAudioUnlock(playFn) {
+  if (typeof playFn !== 'function') return
+
+  if (!isWeChatBrowser()) {
+    playFn()
+    return
+  }
+
+  const invokePlay = () => {
+    try {
+      if (window.WeixinJSBridge?.invoke) {
+        window.WeixinJSBridge.invoke('getNetworkType', {}, () => {
+          playFn()
+        })
+        return
+      }
+    } catch {
+      // fall through
+    }
+    playFn()
+  }
+
+  if (window.WeixinJSBridge) {
+    invokePlay()
+    return
+  }
+
+  if (!wechatBridgeBound && typeof document !== 'undefined') {
+    wechatBridgeBound = true
+    document.addEventListener('WeixinJSBridgeReady', invokePlay, false)
+  }
+
+  // Bridge 迟迟未就绪时兜底，避免一直无声
+  window.setTimeout(() => {
+    playFn()
+  }, 800)
+}
 
 export function getAudioContext() {
   if (typeof window === 'undefined') return null
@@ -58,15 +111,34 @@ export function getAudioContext() {
   return audioContext
 }
 
+function configureHtmlAudio(audio) {
+  audio.preload = 'auto'
+  audio.playsInline = true
+  try {
+    audio.setAttribute('playsinline', '')
+    audio.setAttribute('webkit-playsinline', '')
+  } catch {
+    // 非 HTMLElement 时忽略
+  }
+  return audio
+}
+
 /** 同一音效全局只创建、请求一次 */
 export function getHtmlSfx(src) {
   let audio = htmlAudios.get(src)
   if (audio) return audio
 
-  audio = new Audio(src)
-  audio.preload = 'auto'
+  audio = configureHtmlAudio(new Audio(src))
   htmlAudios.set(src, audio)
   return audio
+}
+
+/**
+ * 墙体音效单独创建，不进入 htmlAudios。
+ * 避免 requestAudioPermission 的静音解锁 play/pause 打断正在播放的 wall。
+ */
+export function createStandaloneSfx(src) {
+  return configureHtmlAudio(new Audio(src))
 }
 
 export function playHtmlAudio(audio) {
@@ -83,7 +155,7 @@ export function playHtmlAudio(audio) {
   }
 
   const playPromise = audio.play()
-  if (playPromise && typeof playPromise.catch === 'function') {
+  if (playPromise && typeof playPromise.then === 'function') {
     return playPromise.catch(() => {})
   }
   return Promise.resolve()
@@ -97,6 +169,8 @@ export function pauseAllHtmlAudio() {
 
 function unlockHtmlAudio(audio) {
   if (!audio) return Promise.resolve()
+  // 已在正常播放的音效不要动
+  if (!audio.paused && !audio.muted) return Promise.resolve()
 
   const token = audio.sfxToken || 0
   audio.muted = true
@@ -104,6 +178,7 @@ function unlockHtmlAudio(audio) {
 
   const finish = () => {
     if (audio.sfxToken !== token) return
+    if (!audio.paused && !audio.muted) return
     audio.pause()
     try {
       audio.currentTime = 0
@@ -127,6 +202,7 @@ function unlockHtmlAudio(audio) {
 
 /** 必须在用户手势回调里同步调用，用于申请/解锁音频播放权限 */
 export function requestAudioPermission() {
+  gestureUnlocked = true
   const ctx = getAudioContext()
 
   if (ctx) {

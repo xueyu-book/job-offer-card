@@ -194,6 +194,7 @@ const activeCardId = ref(null)
 const activeTab = ref(1)
 const splashDone = ref(false)
 const muted = ref(readMutedPreference())
+const unmuteHandlers = new Set()
 const pagerProgress = ref(0)
 const pagerOverflow = ref(0)
 const sectionRefs = Object.create(null)
@@ -233,6 +234,11 @@ function pageDown() {
 
 provide('splashDone', splashDone)
 provide('muted', muted)
+provide('registerUnmuteHandler', (handler) => {
+  if (typeof handler !== 'function') return () => {}
+  unmuteHandlers.add(handler)
+  return () => unmuteHandlers.delete(handler)
+})
 
 function onSplashDone() {
   splashDone.value = true
@@ -339,6 +345,14 @@ function toggleMute() {
     requestMicrophonePermission()
     muted.value = false
     writeMutedPreference(false)
+    // 必须在点击手势栈内同步触发，真机上 watch 微任务会丢失播放权限
+    unmuteHandlers.forEach((handler) => {
+      try {
+        handler()
+      } catch {
+        // 单个 handler 失败不影响其它
+      }
+    })
     return
   }
 

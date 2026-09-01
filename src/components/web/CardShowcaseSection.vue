@@ -56,7 +56,7 @@ import { inject, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import ShowcaseOfferCard from './ShowcaseOfferCard.vue'
 import { cardList } from '@/content/cardShowcaseContent'
 import wallSfx from '@/assets/audio/wall.mp3'
-import { getHtmlSfx, requestAudioPermission } from '@/utils/audio'
+import { createStandaloneSfx, requestAudioPermission, runWithWeChatAudioUnlock } from '@/utils/audio'
 
 /** 单张卡片高度 */
 const CARD_HEIGHT = 300
@@ -73,6 +73,7 @@ const CARD_REVEAL_DURATION_MS = 750
 const activeCardId = inject('activeCardId', ref(null))
 const splashDone = inject('splashDone', ref(true))
 const muted = inject('muted', ref(true))
+const registerUnmuteHandler = inject('registerUnmuteHandler', null)
 const pagerProgress = inject('pagerProgress', null)
 const pagerOverflow = inject('pagerOverflow', null)
 const scrollerRef = ref(null)
@@ -94,6 +95,7 @@ let wallSoundPlaying = false
 let wallSoundStarted = false
 let pendingWallSound = false
 let audioUnlockBound = false
+let unregisterUnmuteHandler = null
 
 function getCardItemStyle(index) {
   const row = Math.floor(index / CARD_GRID_COLUMNS)
@@ -229,17 +231,44 @@ function scrollTwoRows() {
 
 function ensureWallAudio() {
   if (wallAudio) return wallAudio
-  wallAudio = getHtmlSfx(wallSfx)
+  // 独立 Audio，不进全局 htmlAudios，避免解锁逻辑 pause 掉 wall
+  wallAudio = createStandaloneSfx(wallSfx)
   return wallAudio
 }
 
-function markWallSoundPending() {
-  // 默认静音 / 自动播放拦截时挂起，开声音或下一次手势再播
-  pendingWallSound = splashDone.value && !wallSoundStarted
+function primeWallAudioInGesture() {
+  const audio = ensureWallAudio()
+  const unlockToken = audio.sfxToken || 0
+  audio.muted = true
+  audio.volume = 0
+  const playPromise = audio.play()
+  if (playPromise && typeof playPromise.then === 'function') {
+    playPromise
+      .then(() => {
+        if (audio.sfxToken !== unlockToken) return
+        audio.pause()
+        try {
+          audio.currentTime = 0
+        } catch {
+          // 元数据未就绪时忽略
+        }
+        audio.muted = false
+        audio.volume = 1
+      })
+      .catch(() => {
+        audio.muted = false
+        audio.volume = 1
+      })
+    return
+  }
+  audio.pause()
+  audio.muted = false
+  audio.volume = 1
 }
 
 function stopWallAudio() {
   if (!wallAudio) return
+  wallAudio.sfxToken = (wallAudio.sfxToken || 0) + 1
   wallAudio.pause()
   try {
     wallAudio.currentTime = 0
@@ -250,13 +279,14 @@ function stopWallAudio() {
 }
 
 function playWallAudio() {
+  if (wallSoundStarted) return
+
   if (muted.value) {
-    markWallSoundPending()
+    pendingWallSound = true
     return
   }
 
   const audio = ensureWallAudio()
-  // 抬高 token，避免紧随其后的 unlockHtmlAudio 把本次播放 pause 掉
   audio.sfxToken = (audio.sfxToken || 0) + 1
   const token = audio.sfxToken
 
@@ -275,6 +305,11 @@ function playWallAudio() {
     playPromise
       .then(() => {
         if (audio.sfxToken !== token) return
+        if (audio.paused) {
+          wallSoundPlaying = false
+          pendingWallSound = true
+          return
+        }
         wallSoundPlaying = true
         wallSoundStarted = true
         pendingWallSound = false
@@ -282,7 +317,7 @@ function playWallAudio() {
       .catch(() => {
         if (audio.sfxToken !== token) return
         wallSoundPlaying = false
-        markWallSoundPending()
+        pendingWallSound = true
       })
     return
   }
@@ -293,14 +328,23 @@ function playWallAudio() {
 }
 
 function onAudioUnlockGesture() {
-  if (muted.value) return
-
-  const needWall = pendingWallSound || (splashDone.value && !wallSoundStarted)
-  // 必须先在手势栈里发起播放，再做权限解锁，否则 unlock 的 pause 会打断 wall
-  if (needWall) {
-    playWallAudio()
+  if (!wallSoundStarted) {
+    if (!muted.value && splashDone.value) {
+      playWallAudio()
+    } else {
+      primeWallAudioInGesture()
+      if (!muted.value) pendingWallSound = true
+    }
   }
+
   requestAudioPermission()
+}
+
+/** 微信浮窗切换等可见性变化时，若尚未成功播放则补播 */
+function onVisibilityChange() {
+  if (muted.value || wallSoundStarted) return
+  if (!splashDone.value && !pendingWallSound) return
+  playWallAudio()
 }
 
 function bindAudioUnlock() {
@@ -313,6 +357,9 @@ function bindAudioUnlock() {
       passive: true
     })
   })
+  document.addEventListener('visibilitychange', onVisibilityChange)
+  window.addEventListener('pageshow', onVisibilityChange)
+  window.addEventListener('focus', onVisibilityChange)
 }
 
 function unbindAudioUnlock() {
@@ -322,13 +369,19 @@ function unbindAudioUnlock() {
   AUDIO_UNLOCK_EVENTS.forEach((eventName) => {
     window.removeEventListener(eventName, onAudioUnlockGesture, { capture: true })
   })
+  document.removeEventListener('visibilitychange', onVisibilityChange)
+  window.removeEventListener('pageshow', onVisibilityChange)
+  window.removeEventListener('focus', onVisibilityChange)
 }
 
 function startWallSplit() {
   if (wallSliding.value || wallSettled.value) return
 
   wallSoundStarted = false
-  playWallAudio()
+  pendingWallSound = true
+  runWithWeChatAudioUnlock(() => {
+    playWallAudio()
+  })
   triggerCardsReveal()
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
@@ -340,6 +393,7 @@ function startWallSplit() {
     })
   })
 }
+
 
 ensureWallAudio()
 bindAudioUnlock()
@@ -353,7 +407,11 @@ defineExpose({
 watch(
   splashDone,
   (done) => {
-    if (done) startWallSplit()
+    if (!done) return
+    startWallSplit()
+    if (!muted.value && pendingWallSound && !wallSoundStarted) {
+      playWallAudio()
+    }
   },
   { immediate: true }
 )
@@ -364,15 +422,25 @@ watch(muted, (isMuted) => {
     return
   }
 
-  // 开墙动画期间或尚未成功播过时，开声音后补播
   if (splashDone.value && !wallSoundStarted) {
-    playWallAudio()
+    runWithWeChatAudioUnlock(() => {
+      playWallAudio()
+    })
   }
 })
 
 onMounted(() => {
   scrollerRef.value?.addEventListener('scrollend', onScrollEnd)
   syncPagerProgress()
+  unregisterUnmuteHandler = registerUnmuteHandler?.(() => {
+    if (!wallSoundStarted) playWallAudio()
+  }) || null
+
+  runWithWeChatAudioUnlock(() => {
+    if (!muted.value && splashDone.value && !wallSoundStarted) {
+      playWallAudio()
+    }
+  })
 })
 
 onUnmounted(() => {
@@ -384,6 +452,8 @@ onUnmounted(() => {
   }
   resetCardsReveal()
   unbindAudioUnlock()
+  unregisterUnmuteHandler?.()
+  unregisterUnmuteHandler = null
   pendingWallSound = false
   wallSoundPlaying = false
   wallSoundStarted = false
