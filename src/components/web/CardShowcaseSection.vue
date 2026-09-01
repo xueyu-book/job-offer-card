@@ -56,7 +56,7 @@ import { inject, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import ShowcaseOfferCard from './ShowcaseOfferCard.vue'
 import { cardList } from '@/content/cardShowcaseContent'
 import wallSfx from '@/assets/audio/wall.mp3'
-import { getAudioContext, requestAudioPermission } from '@/utils/audio'
+import { getHtmlSfx, requestAudioPermission } from '@/utils/audio'
 
 /** 单张卡片高度 */
 const CARD_HEIGHT = 300
@@ -89,8 +89,7 @@ let programmaticTimer = null
 let wallSettleTimer = null
 let cardSettleTimer = null
 let revealFrame = null
-let wallAudioBuffer = null
-let wallAudioSource = null
+let wallAudio = null
 let wallSoundPlaying = false
 let wallSoundStarted = false
 let pendingWallSound = false
@@ -228,86 +227,74 @@ function scrollTwoRows() {
   scrollByRows(2)
 }
 
-function getWallAudioContext() {
-  return getAudioContext()
-}
-
-function loadWallAudioBuffer() {
-  const ctx = getWallAudioContext()
-  if (!ctx || wallAudioBuffer) return
-
-  fetch(wallSfx)
-    .then((response) => response.arrayBuffer())
-    .then((data) => ctx.decodeAudioData(data))
-    .then((buffer) => {
-      wallAudioBuffer = buffer
-      if (pendingWallSound) playWallAudio()
-    })
-    .catch(() => {})
+function ensureWallAudio() {
+  if (wallAudio) return wallAudio
+  wallAudio = getHtmlSfx(wallSfx)
+  return wallAudio
 }
 
 function markWallSoundPending() {
-  pendingWallSound = !wallSettled.value
+  // 默认静音 / 自动播放拦截时挂起，开声音或下一次手势再播
+  pendingWallSound = splashDone.value && !wallSoundStarted
 }
 
 function unlockWallAudio() {
-  if (wallSoundPlaying) return
   requestAudioPermission()
 }
 
 function stopWallAudio() {
-  if (!wallAudioSource) return
-
+  if (!wallAudio) return
+  wallAudio.pause()
   try {
-    wallAudioSource.stop()
+    wallAudio.currentTime = 0
   } catch {
-    // 已结束的 source 再 stop 会抛错
+    // 元数据未就绪时忽略
   }
-  wallAudioSource.disconnect()
-  wallAudioSource = null
+  wallSoundPlaying = false
 }
 
 function playWallAudio() {
-  if (muted.value) return
-
-  const ctx = getWallAudioContext()
-  if (!ctx || !wallAudioBuffer) {
+  if (muted.value) {
     markWallSoundPending()
     return
   }
 
-  if (ctx.state !== 'running') {
-    markWallSoundPending()
-    ctx.resume().then(() => {
-      if (pendingWallSound && ctx.state === 'running') playWallAudio()
-    }).catch(markWallSoundPending)
-    return
-  }
+  const audio = ensureWallAudio()
 
   try {
-    stopWallAudio()
-    const source = ctx.createBufferSource()
-    source.buffer = wallAudioBuffer
-    source.connect(ctx.destination)
-    source.onended = () => {
-      if (wallAudioSource === source) wallAudioSource = null
-      wallSoundPlaying = false
-    }
-    source.start(0)
-    wallAudioSource = source
-    wallSoundPlaying = true
-    wallSoundStarted = true
-    pendingWallSound = false
+    audio.pause()
+    audio.currentTime = 0
   } catch {
-    wallSoundPlaying = false
-    markWallSoundPending()
+    // 元数据未就绪时忽略
   }
+
+  audio.muted = false
+  audio.volume = 1
+
+  const playPromise = audio.play()
+  if (playPromise && typeof playPromise.then === 'function') {
+    playPromise
+      .then(() => {
+        wallSoundPlaying = true
+        wallSoundStarted = true
+        pendingWallSound = false
+      })
+      .catch(() => {
+        wallSoundPlaying = false
+        markWallSoundPending()
+      })
+    return
+  }
+
+  wallSoundPlaying = true
+  wallSoundStarted = true
+  pendingWallSound = false
 }
 
 function onAudioUnlockGesture() {
-  if (wallSettled.value) return
-
   unlockWallAudio()
+
+  if (muted.value) return
 
   if (pendingWallSound || (splashDone.value && !wallSoundStarted)) {
     playWallAudio()
@@ -346,14 +333,13 @@ function startWallSplit() {
       wallSliding.value = true
       wallSettleTimer = window.setTimeout(() => {
         wallSettled.value = true
-        pendingWallSound = false
         wallSettleTimer = null
       }, WALL_SLIDE_DURATION_MS)
     })
   })
 }
 
-loadWallAudioBuffer()
+ensureWallAudio()
 bindAudioUnlock()
 
 defineExpose({
@@ -373,12 +359,11 @@ watch(
 watch(muted, (isMuted) => {
   if (isMuted) {
     stopWallAudio()
-    wallSoundPlaying = false
-    pendingWallSound = false
     return
   }
 
-  if (splashDone.value && !wallSettled.value && !wallSoundStarted) {
+  // 开墙动画期间或尚未成功播过时，开声音后补播
+  if (splashDone.value && !wallSoundStarted) {
     playWallAudio()
   }
 })
@@ -401,7 +386,7 @@ onUnmounted(() => {
   wallSoundPlaying = false
   wallSoundStarted = false
   stopWallAudio()
-  wallAudioBuffer = null
+  wallAudio = null
 })
 </script>
 
