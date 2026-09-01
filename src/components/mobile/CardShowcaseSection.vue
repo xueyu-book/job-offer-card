@@ -202,10 +202,6 @@ function markWallSoundPending() {
   pendingWallSound = splashDone.value && !wallSoundStarted
 }
 
-function unlockWallAudio() {
-  requestAudioPermission()
-}
-
 function stopWallAudio() {
   if (!wallAudio) return
   wallAudio.pause()
@@ -224,6 +220,9 @@ function playWallAudio() {
   }
 
   const audio = ensureWallAudio()
+  // 抬高 token，避免紧随其后的 unlockHtmlAudio 把本次播放 pause 掉
+  audio.sfxToken = (audio.sfxToken || 0) + 1
+  const token = audio.sfxToken
 
   try {
     audio.pause()
@@ -239,11 +238,13 @@ function playWallAudio() {
   if (playPromise && typeof playPromise.then === 'function') {
     playPromise
       .then(() => {
+        if (audio.sfxToken !== token) return
         wallSoundPlaying = true
         wallSoundStarted = true
         pendingWallSound = false
       })
       .catch(() => {
+        if (audio.sfxToken !== token) return
         wallSoundPlaying = false
         markWallSoundPending()
       })
@@ -256,13 +257,14 @@ function playWallAudio() {
 }
 
 function onAudioUnlockGesture() {
-  unlockWallAudio()
-
   if (muted.value) return
 
-  if (pendingWallSound || (splashDone.value && !wallSoundStarted)) {
+  const needWall = pendingWallSound || (splashDone.value && !wallSoundStarted)
+  // 必须先在手势栈里发起播放，再做权限解锁，否则 unlock 的 pause 会打断 wall
+  if (needWall) {
     playWallAudio()
   }
+  requestAudioPermission()
 }
 
 function bindAudioUnlock() {
