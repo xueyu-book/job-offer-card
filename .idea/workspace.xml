@@ -4,7 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5fe094ee-6e06-4d8d-bcd0-7e67d277362f" name="Changes" comment="开屏动画调整" />
+    <list default="true" id="5fe094ee-6e06-4d8d-bcd0-7e67d277362f" name="Changes" comment="开屏动画调整">
+      <change beforePath="$PROJECT_DIR$/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/assets/images/web/periphery/1.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/assets/images/web/periphery/1.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/web/ClubManifestoSection.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/web/ClubManifestoSection.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/web/FaqSection.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/web/FaqSection.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/web/GameRulesSection.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/web/GameRulesSection.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/views/web/HomeView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/views/web/HomeView.vue" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />

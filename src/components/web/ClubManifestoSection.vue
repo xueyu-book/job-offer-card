@@ -43,7 +43,10 @@
                 <span
                   v-for="(segment, segmentIndex) in paragraph.segments"
                   :key="segmentIndex"
-                  :class="{ 'is-strike': segment.strike }"
+                  :class="{
+                    'is-strike': segment.strike,
+                    'is-highlight': segment.highlight
+                  }"
                 >{{ segment.text }}</span>
               </template>
             </p>
@@ -180,7 +183,7 @@ defineExpose({
   overflow-x: hidden;
   overflow-y: auto;
   padding: 0 56px 24px;
-  color: #f1f1f1;
+  color: #ffffff;
   overscroll-behavior: contain;
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -207,7 +210,7 @@ defineExpose({
 .club-manifesto-section__heading {
   margin-bottom: 8px;
   font-family: 'Dream Han Sans W12', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
-  font-size: 24px;
+  font-size: 16px;
   font-weight: 400;
   line-height: 1.45;
   color: #fff000;
@@ -215,13 +218,18 @@ defineExpose({
 
 .club-manifesto-section__body {
   font-family: 'Dream Han Sans W5', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
-  font-size: 24px;
+  font-size: 16px;
   font-weight: 400;
   line-height: 1.45;
-  color: #f1f1f1;
+  color: #ffffff;
 }
 
 .club-manifesto-section__body .is-strike {
   text-decoration: line-through;
+}
+
+.club-manifesto-section__body .is-highlight {
+  font-family: 'Dream Han Sans W12', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+  color: #fff000;
 }
 </style>

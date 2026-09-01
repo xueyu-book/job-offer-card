@@ -31,7 +31,10 @@
               <span
                 v-for="(segment, segmentIndex) in paragraph.segments"
                 :key="segmentIndex"
-                :class="{ 'is-strike': segment.strike }"
+                :class="{
+                  'is-strike': segment.strike,
+                  'is-highlight': segment.highlight
+                }"
               >{{ segment.text }}</span>
             </template>
           </p>
@@ -121,7 +124,7 @@ import { manifestoSections } from '@/content/clubManifestoContent'
 .club-manifesto-section__heading {
   margin-bottom: 6px;
   font-family: 'Dream Han Sans W12', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 400;
   line-height: 1.45;
   color: #fff000;
@@ -129,13 +132,18 @@ import { manifestoSections } from '@/content/clubManifestoContent'
 
 .club-manifesto-section__body {
   font-family: 'Dream Han Sans W5', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 400;
   line-height: 1.45;
-  color: #f1f1f1;
+  color: #ffffff;
 }
 
 .club-manifesto-section__body .is-strike {
   text-decoration: line-through;
+}
+
+.club-manifesto-section__body .is-highlight {
+  font-family: 'Dream Han Sans W12', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+  color: #fff000;
 }
 </style>

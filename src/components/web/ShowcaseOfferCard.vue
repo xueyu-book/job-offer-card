@@ -93,7 +93,7 @@ const infoLayoutClass = computed(() =>
   showLaterHeader.value ? 'card__info--split' : 'card__info--plain'
 )
 
-const cardImages = import.meta.glob('@/assets/images/web/card/*.jpg', {
+const cardImages = import.meta.glob('@/assets/images/card/*.jpg', {
   eager: true,
   import: 'default'
 })

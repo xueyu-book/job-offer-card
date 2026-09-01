@@ -138,7 +138,7 @@ import { faqContact, faqItems } from '@/content/faqContent'
 .faq-section__question {
   margin-bottom: 4px;
   font-family: 'Dream Han Sans W12', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 400;
   line-height: 1.45;
   color: #fff000;
@@ -147,10 +147,10 @@ import { faqContact, faqItems } from '@/content/faqContent'
 .faq-section__answer,
 .faq-section__contact {
   font-family: 'Dream Han Sans W5', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 400;
   line-height: 1.45;
-  color: #f1f1f1;
+  color: #ffffff;
 }
 
 .faq-section__table {
@@ -161,7 +161,7 @@ import { faqContact, faqItems } from '@/content/faqContent'
   font-size: 12px;
   font-weight: 400;
   line-height: 1.45;
-  color: #f1f1f1;
+  color: #ffffff;
 }
 
 .faq-section__table th,

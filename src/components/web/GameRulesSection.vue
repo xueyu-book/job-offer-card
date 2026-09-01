@@ -332,7 +332,7 @@ defineExpose({
   overflow-x: hidden;
   overflow-y: auto;
   padding: 0 48px 24px;
-  color: #f1f1f1;
+  color: #ffffff;
   overscroll-behavior: contain;
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -366,7 +366,7 @@ defineExpose({
 .game-rules-section__step-title {
   margin-bottom: 8px;
   font-family: 'Dream Han Sans W12', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
-  font-size: 24px;
+  font-size: 16px;
   font-weight: 400;
   line-height: 1.35;
   text-align: center;
@@ -375,10 +375,10 @@ defineExpose({
 
 .game-rules-section__step-body {
   font-family: 'Dream Han Sans W5', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
-  font-size: 24px;
+  font-size: 16px;
   font-weight: 400;
   line-height: 1.45;
   text-align: center;
-  color: #f1f1f1;
+  color: #ffffff;
 }
 </style>

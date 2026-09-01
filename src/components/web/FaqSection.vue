@@ -201,7 +201,7 @@ defineExpose({
   overflow-x: hidden;
   overflow-y: auto;
   padding: 0 56px 24px;
-  color: #f1f1f1;
+  color: #ffffff;
   overscroll-behavior: contain;
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -224,7 +224,7 @@ defineExpose({
 .faq-section__question {
   margin-bottom: 8px;
   font-family: 'Dream Han Sans W12', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
-  font-size: 24px;
+  font-size: 16px;
   font-weight: 400;
   line-height: 1.45;
   color: #fff000;
@@ -233,10 +233,10 @@ defineExpose({
 .faq-section__answer,
 .faq-section__contact {
   font-family: 'Dream Han Sans W5', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
-  font-size: 24px;
+  font-size: 16px;
   font-weight: 400;
   line-height: 1.45;
-  color: #f1f1f1;
+  color: #ffffff;
 }
 
 .faq-section__table {
@@ -245,16 +245,16 @@ defineExpose({
   margin: 16px 0 20px;
   border-collapse: collapse;
   font-family: 'Dream Han Sans W5', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
-  font-size: 24px;
+  font-size: 16px;
   font-weight: 400;
   line-height: 1.45;
-  color: #f1f1f1;
+  color: #ffffff;
 }
 
 .faq-section__table th,
 .faq-section__table td {
   padding: 8px 16px;
-  border: 1px solid rgba(241, 241, 241, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.45);
   text-align: left;
   white-space: pre-wrap;
 }

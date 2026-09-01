@@ -261,7 +261,7 @@ watch(view, () => {
 .game-rules-section__step-title {
   margin-bottom: 4px;
   font-family: 'Dream Han Sans W12', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 400;
   line-height: 1.4;
   text-align: center;
@@ -270,10 +270,10 @@ watch(view, () => {
 
 .game-rules-section__step-body {
   font-family: 'Dream Han Sans W5', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 400;
   line-height: 1.45;
   text-align: center;
-  color: #f1f1f1;
+  color: #ffffff;
 }
 </style>

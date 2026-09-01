@@ -429,6 +429,11 @@ onUnmounted(() => {
   .web-home__provision {
     z-index: 2;
   }
+
+  /* 卡片在 container 内；需整体抬到蒙层之上，否则子元素 z-index 无法穿透 stacking context */
+  .web-home__container {
+    z-index: 90;
+  }
 }
 
 .web-home__logo {

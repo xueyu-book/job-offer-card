@@ -23,7 +23,7 @@ export const jobSeekerRules = {
     {
       title: 'Step 4 回购',
       lines: [
-        'TOHC根据评级结果，按对应价格回购您持有的求职卡。',
+        'TOHC 根据评级结果，按对应价格回购您持有的求职卡。',
         '您可寄回卡片获得收益，或继续收藏。'
       ]
     }
