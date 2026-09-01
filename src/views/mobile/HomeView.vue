@@ -423,28 +423,21 @@ body {
   box-sizing: border-box;
   width: 24px;
   height: 493px;
-  /* (523 - 493) / 2，菜单模块在内容框内垂直居中 */
-  margin-top: 15px;
+  margin-top: 22px;
   flex-shrink: 0;
 }
 
 .mobile-home__tab {
   position: relative;
-  box-sizing: border-box;
   width: 24px;
   height: 111px;
-  margin: 0;
+  margin-top: -18px;
   padding: 0;
-  border: none;
-  background: transparent;
-  appearance: none;
-  -webkit-appearance: none;
-  line-height: 0;
   flex-shrink: 0;
   cursor: pointer;
 
-  &:not(:first-child) {
-    margin-top: -15px;
+  &:first-child {
+    margin-top: 0;
   }
 
   img {
