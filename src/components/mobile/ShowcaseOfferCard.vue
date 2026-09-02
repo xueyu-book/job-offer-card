@@ -112,8 +112,9 @@ const CARD_WIDTH = 95
 const CARD_HEIGHT = 152
 const POPOVER_WIDTH = 179
 const POPOVER_HEIGHT = 282
-const POPOVER_SCALE_X = POPOVER_WIDTH / CARD_WIDTH
-const POPOVER_SCALE_Y = POPOVER_HEIGHT / CARD_HEIGHT
+/** 列表态相对「放大尺寸」的缩放；布局始终按 POPOVER 渲染，避免放大时 GPU 糊图 */
+const IDLE_SCALE_X = CARD_WIDTH / POPOVER_WIDTH
+const IDLE_SCALE_Y = CARD_HEIGHT / POPOVER_HEIGHT
 
 const cardRef = ref(null)
 const active = computed(() => activeCardId.value === props.id)
@@ -124,7 +125,7 @@ let repositionTimer = null
 const springPopover = { stiffness: 0.033, damping: 0.45 }
 const springRotateDelta = useSpring({ x: 0, y: 0 }, springPopover)
 const springTranslate = useSpring({ x: 0, y: 0 }, springPopover)
-const springScale = useSpring({ x: 1, y: 1 }, springPopover)
+const springScale = useSpring({ x: IDLE_SCALE_X, y: IDLE_SCALE_Y }, springPopover)
 
 const ariaLabel = computed(() => {
   if (!active.value) return `展开求职卡 ${props.serial}`
@@ -138,7 +139,8 @@ const dynamicStyles = computed(() => {
   const scale = springScale.current.value
 
   return {
-    '--card-scale': Math.max(scale.x, scale.y),
+    // 归一到列表尺寸倍数，供 z-index / translate-z 使用（列表≈1，展开≈1.88）
+    '--card-scale': Math.max(scale.x / IDLE_SCALE_X, scale.y / IDLE_SCALE_Y),
     '--card-scale-x': scale.x,
     '--card-scale-y': scale.y,
     '--translate-x': `${translate.x}px`,
@@ -183,19 +185,20 @@ function popover() {
   springRotateDelta.set({ x: 0, y: 0 }, { hard: true })
   flipAngle = 360
   springRotateDelta.set({ x: flipAngle, y: 0 })
-  springScale.set({ x: POPOVER_SCALE_X, y: POPOVER_SCALE_Y })
+  springScale.set({ x: 1, y: 1 })
 }
 
 function toggleFace() {
   flipAngle += 180
   flipped.value = flipAngle % 360 !== 0
+  playCardAudio()
   springRotateDelta.set({ x: flipAngle, y: 0 })
 }
 
 function retreat() {
   flipped.value = false
   flipAngle = 0
-  springScale.set({ x: 1, y: 1 }, { soft: true })
+  springScale.set({ x: IDLE_SCALE_X, y: IDLE_SCALE_Y }, { soft: true })
   springTranslate.set({ x: 0, y: 0 }, { soft: true })
   springRotateDelta.set({ x: 0, y: 0 }, { hard: true })
 }
@@ -253,8 +256,8 @@ onUnmounted(() => {
 <style scoped lang="scss">
 .card {
   --card-scale: 1;
-  --card-scale-x: 1;
-  --card-scale-y: 1;
+  --card-scale-x: calc(95 / 179);
+  --card-scale-y: calc(152 / 282);
   --translate-x: 0px;
   --translate-y: 0px;
   --rotate-x: 0deg;
@@ -283,18 +286,24 @@ onUnmounted(() => {
 }
 
 .card__translater {
-  width: 100%;
-  height: 100%;
-  position: relative;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 179px;
+  height: 282px;
   overflow: visible;
   --translate-z: calc(var(--card-scale) * 80px + 0.01px);
-  transform: translate3d(var(--translate-x), var(--translate-y), var(--translate-z))
+  transform: translate3d(
+      calc(-50% + var(--translate-x)),
+      calc(-50% + var(--translate-y)),
+      var(--translate-z)
+    )
     scale(var(--card-scale-x), var(--card-scale-y));
 }
 
 .card__rotator {
-  width: 95px;
-  height: 152px;
+  width: 179px;
+  height: 282px;
   padding: 0;
   border: none;
   background: transparent;
@@ -314,8 +323,8 @@ onUnmounted(() => {
 .card__front,
 .card__back {
   grid-area: 1 / 1;
-  width: 95px;
-  height: 152px;
+  width: 179px;
+  height: 282px;
   pointer-events: none;
   transform-style: preserve-3d;
 }
@@ -340,20 +349,20 @@ onUnmounted(() => {
 .card__info {
   box-sizing: border-box;
   display: flex;
-  width: 95px;
-  height: 18px;
-  margin-bottom: 4px;
+  width: 179px;
+  height: calc(18 * 282px / 152);
+  margin-bottom: calc(4 * 282px / 152);
   flex-shrink: 0;
-  padding: 0 3px;
-  border: 2px solid #e50012;
+  padding: 0 calc(3 * 179px / 95);
+  border: calc(2 * 179px / 95) solid #e50012;
   background: #fff;
   color: #111;
   font-family: 'Dream Han Sans W10', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
-  font-size: 6px;
+  font-size: calc(6 * 179px / 95);
   font-weight: 400;
   line-height: 1;
   letter-spacing: -0.02em;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 calc(2 * 179px / 95) calc(6 * 179px / 95) rgba(0, 0, 0, 0.4);
 }
 
 .card__info--plain {
@@ -383,11 +392,11 @@ onUnmounted(() => {
 }
 
 .card__body {
-  width: 95px;
+  width: 179px;
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 calc(2 * 179px / 95) calc(6 * 179px / 95) rgba(0, 0, 0, 0.4);
 }
 
 .card.active {

@@ -110,6 +110,12 @@ const activeCardId = inject('activeCardId', ref(null))
 const setActiveCardId = inject('setActiveCardId', () => {})
 const muted = inject('muted', ref(true))
 
+const CARD_WIDTH = 188
+const CARD_HEIGHT = 300
+/** 布局按最大展开尺寸渲染，列表态再 scale 缩小，避免放大糊图 */
+const POPOVER_SCALE_MAX = 1.75
+const IDLE_SCALE = 1 / POPOVER_SCALE_MAX
+
 const cardRef = ref(null)
 const active = computed(() => activeCardId.value === props.id)
 const interacting = ref(false)
@@ -127,7 +133,7 @@ const springRotate = useSpring({ x: 0, y: 0 }, springInteract)
 const springGlare = useSpring({ x: 50, y: 50, o: 0 }, springInteract)
 const springRotateDelta = useSpring({ x: 0, y: 0 }, springPopover)
 const springTranslate = useSpring({ x: 0, y: 0 }, springPopover)
-const springScale = useSpring(1, springPopover)
+const springScale = useSpring(IDLE_SCALE, springPopover)
 
 const ariaLabel = computed(() => {
   if (!active.value) return `展开求职卡 ${props.serial}`
@@ -140,6 +146,7 @@ const dynamicStyles = computed(() => {
   const rotate = springRotate.current.value
   const rotateDelta = springRotateDelta.current.value
   const translate = springTranslate.current.value
+  const scale = springScale.current.value
 
   return {
     '--pointer-x': `${glare.x}%`,
@@ -147,7 +154,9 @@ const dynamicStyles = computed(() => {
     '--card-opacity': glare.o,
     '--rotate-x': `${rotate.x + rotateDelta.x}deg`,
     '--rotate-y': `${rotate.y + rotateDelta.y}deg`,
-    '--card-scale': springScale.current.value,
+    // 归一到列表尺寸倍数（列表=1，展开最大≈1.75）
+    '--card-scale': scale * POPOVER_SCALE_MAX,
+    '--card-scale-transform': scale,
     '--translate-x': `${translate.x}px`,
     '--translate-y': `${translate.y}px`
   }
@@ -242,10 +251,9 @@ function popover() {
   const el = cardRef.value
   if (!el) return
 
-  const rect = el.getBoundingClientRect()
-  const scaleW = (window.innerWidth / rect.width) * 0.9
-  const scaleH = (window.innerHeight / rect.height) * 0.9
-  const scaleF = 1.75
+  const scaleW = (window.innerWidth / CARD_WIDTH) * 0.9
+  const scaleH = (window.innerHeight / CARD_HEIGHT) * 0.9
+  const visualScale = Math.min(scaleW, scaleH, POPOVER_SCALE_MAX)
 
   flipped.value = false
   flipAngle = 0
@@ -253,13 +261,14 @@ function popover() {
   springRotateDelta.set({ x: 0, y: 0 }, { hard: true })
   flipAngle = 360
   springRotateDelta.set({ x: flipAngle, y: 0 })
-  springScale.set(Math.min(scaleW, scaleH, scaleF))
+  springScale.set(visualScale / POPOVER_SCALE_MAX)
   interactEnd(null, 1000)
 }
 
 function toggleFace() {
   flipAngle += 180
   flipped.value = flipAngle % 360 !== 0
+  playCardAudio()
   springRotateDelta.set({ x: flipAngle, y: 0 })
   interactEnd(null, 600)
 }
@@ -267,7 +276,7 @@ function toggleFace() {
 function retreat() {
   flipped.value = false
   flipAngle = 0
-  springScale.set(1, { soft: true })
+  springScale.set(IDLE_SCALE, { soft: true })
   springTranslate.set({ x: 0, y: 0 }, { soft: true })
   springRotateDelta.set({ x: 0, y: 0 }, { hard: true })
   interactEnd(null, 100)
@@ -326,6 +335,7 @@ onUnmounted(() => {
   --pointer-x: 50%;
   --pointer-y: 50%;
   --card-scale: 1;
+  --card-scale-transform: calc(1 / 1.75);
   --card-opacity: 0;
   --translate-x: 0px;
   --translate-y: 0px;
@@ -363,18 +373,24 @@ onUnmounted(() => {
 }
 
 .card__translater {
-  width: 100%;
-  height: 100%;
-  position: relative;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: #{188 * 1.75}px;
+  height: #{300 * 1.75}px;
   overflow: visible;
   --translate-z: calc(var(--card-scale) * 150px + 0.01px);
-  transform: translate3d(var(--translate-x), var(--translate-y), var(--translate-z))
-    scale(var(--card-scale));
+  transform: translate3d(
+      calc(-50% + var(--translate-x)),
+      calc(-50% + var(--translate-y)),
+      var(--translate-z)
+    )
+    scale(var(--card-scale-transform));
 }
 
 .card__rotator {
-  width: 188px;
-  height: 300px;
+  width: #{188 * 1.75}px;
+  height: #{300 * 1.75}px;
   padding: 0;
   border: none;
   background: transparent;
@@ -394,8 +410,8 @@ onUnmounted(() => {
 .card__front,
 .card__back {
   grid-area: 1 / 1;
-  width: 188px;
-  height: 300px;
+  width: #{188 * 1.75}px;
+  height: #{300 * 1.75}px;
   pointer-events: none;
   transform-style: preserve-3d;
 }
@@ -420,19 +436,19 @@ onUnmounted(() => {
 .card__info {
   box-sizing: border-box;
   display: flex;
-  width: 188px;
-  height: 36px;
-  margin-bottom: 8px;
+  width: #{188 * 1.75}px;
+  height: #{36 * 1.75}px;
+  margin-bottom: #{8 * 1.75}px;
   flex-shrink: 0;
-  padding: 0 8px;
-  border: 4px solid #e50012;
+  padding: 0 #{8 * 1.75}px;
+  border: #{4 * 1.75}px solid #e50012;
   background: #fff;
   color: #111;
   font-family: 'Dream Han Sans W10', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
-  font-size: 8pt;
+  font-size: #{8 * 1.75}pt;
   font-weight: 400;
   line-height: 1.15;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 #{4 * 1.75}px #{10 * 1.75}px rgba(0, 0, 0, 0.4);
   transition: box-shadow 0.35s ease;
 }
 
@@ -464,11 +480,11 @@ onUnmounted(() => {
 }
 
 .card__body {
-  width: 188px;
+  width: #{188 * 1.75}px;
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 #{4 * 1.75}px #{10 * 1.75}px rgba(0, 0, 0, 0.4);
   transition: box-shadow 0.35s ease;
 }
 
