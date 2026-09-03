@@ -48,6 +48,25 @@
         </div>
       </button>
     </div>
+
+    <Teleport to="body">
+      <div
+        v-if="imageViewerOpen"
+        class="card-image-viewer"
+        role="dialog"
+        aria-modal="true"
+        aria-label="卡片大图"
+        @pointerdown.stop
+        @click="closeImageViewer"
+      >
+        <img
+          class="card-image-viewer__img"
+          :src="viewerSrc"
+          :alt="`求职卡 ${serial}`"
+          draggable="false"
+        />
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -115,17 +134,23 @@ const POPOVER_HEIGHT = 282
 /** 列表态相对「放大尺寸」的缩放；布局始终按 POPOVER 渲染，避免放大时 GPU 糊图 */
 const IDLE_SCALE_X = CARD_WIDTH / POPOVER_WIDTH
 const IDLE_SCALE_Y = CARD_HEIGHT / POPOVER_HEIGHT
+const DOUBLE_TAP_MS = 280
 
 const cardRef = ref(null)
 const active = computed(() => activeCardId.value === props.id)
 const flipped = ref(false)
+const imageViewerOpen = ref(false)
 let flipAngle = 0
 let repositionTimer = null
+let flipTimer = null
+let lastTapAt = 0
 
 const springPopover = { stiffness: 0.033, damping: 0.45 }
 const springRotateDelta = useSpring({ x: 0, y: 0 }, springPopover)
 const springTranslate = useSpring({ x: 0, y: 0 }, springPopover)
 const springScale = useSpring({ x: IDLE_SCALE_X, y: IDLE_SCALE_Y }, springPopover)
+
+const viewerSrc = computed(() => (flipped.value ? cardBackSrc.value : cardSrc.value))
 
 const ariaLabel = computed(() => {
   if (!active.value) return `展开求职卡 ${props.serial}`
@@ -176,11 +201,29 @@ function setCenter() {
   })
 }
 
+function clearFlipTimer() {
+  if (flipTimer != null) {
+    clearTimeout(flipTimer)
+    flipTimer = null
+  }
+}
+
+function openImageViewer() {
+  imageViewerOpen.value = true
+}
+
+function closeImageViewer() {
+  imageViewerOpen.value = false
+}
+
 function popover() {
   if (!cardRef.value) return
 
   flipped.value = false
   flipAngle = 0
+  closeImageViewer()
+  clearFlipTimer()
+  lastTapAt = 0
   setCenter()
   springRotateDelta.set({ x: 0, y: 0 }, { hard: true })
   flipAngle = 360
@@ -198,6 +241,9 @@ function toggleFace() {
 function retreat() {
   flipped.value = false
   flipAngle = 0
+  closeImageViewer()
+  clearFlipTimer()
+  lastTapAt = 0
   springScale.set({ x: IDLE_SCALE_X, y: IDLE_SCALE_Y }, { soft: true })
   springTranslate.set({ x: 0, y: 0 }, { soft: true })
   springRotateDelta.set({ x: 0, y: 0 }, { hard: true })
@@ -209,7 +255,24 @@ function onCardClick() {
     setActiveCardId(props.id)
     return
   }
-  toggleFace()
+
+  const now = performance.now()
+  const isDouble = now - lastTapAt < DOUBLE_TAP_MS
+  lastTapAt = now
+
+  if (isDouble) {
+    clearFlipTimer()
+    lastTapAt = 0
+    openImageViewer()
+    return
+  }
+
+  // 双击判定窗口内暂缓翻面，避免误翻
+  clearFlipTimer()
+  flipTimer = setTimeout(() => {
+    flipTimer = null
+    toggleFace()
+  }, DOUBLE_TAP_MS)
 }
 
 function reposition() {
@@ -240,6 +303,7 @@ onUnmounted(() => {
   window.visualViewport?.removeEventListener('resize', reposition)
   window.visualViewport?.removeEventListener('scroll', reposition)
   clearTimeout(repositionTimer)
+  clearFlipTimer()
 })
 </script>
 
@@ -411,5 +475,34 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+</style>
+
+<style lang="scss">
+.card-image-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 16px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  background: rgba(0, 0, 0, 0.92);
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.card-image-viewer__img {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
 }
 </style>

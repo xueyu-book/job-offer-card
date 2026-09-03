@@ -118,7 +118,7 @@ import tabIcon2Active from '@/assets/images/mobile/tabbar/2_active.svg'
 import tabIcon3Active from '@/assets/images/mobile/tabbar/3_active.svg'
 import tabIcon4Active from '@/assets/images/mobile/tabbar/4_active.svg'
 import tabIcon5Active from '@/assets/images/mobile/tabbar/5_active.svg'
-import navSfx from '@/assets/audio/nav.wav'
+import navSfx from '@/assets/audio/nav.mp3'
 import iconPlay from '@/assets/images/mobile/home/icon_play.svg'
 import iconMute from '@/assets/images/mobile/home/icon_mute.svg'
 import provisionPdf from '@/assets/TOHC-provision.pdf'
@@ -159,6 +159,7 @@ function setActiveCardId(id) {
 function onPointerDownOutsideCard(event) {
   if (activeCardId.value == null) return
   if (event.target?.closest?.('.card.active')) return
+  if (event.target?.closest?.('.card-image-viewer')) return
   if (event.target?.closest?.('.mobile-home__actions, .mobile-home__site')) return
   setActiveCardId(null)
 }
