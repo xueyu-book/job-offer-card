@@ -127,7 +127,7 @@ import { getHtmlSfx, pauseAllHtmlAudio, playHtmlAudio, readMutedPreference, requ
 const TAB_FLASH_COUNT = 2
 const TAB_FRAME_MS = 80
 
-const countdownEndTime = '2026-11-30T18:00:00+08:00'
+const countdownEndTime = '2026-11-30T23:59:59+08:00'
 
 const activeCardId = ref(null)
 const activeTab = ref(1)

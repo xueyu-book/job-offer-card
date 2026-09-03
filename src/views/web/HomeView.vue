@@ -188,7 +188,7 @@ const PAGE_ROWS = 2
 const PAGE_DOT_TOP_MIN = 160
 const PAGE_DOT_TOP_MAX = 606
 
-const countdownEndTime = '2026-11-30T18:00:00+08:00'
+const countdownEndTime = '2026-11-30T23:59:59+08:00'
 
 const activeCardId = ref(null)
 const activeTab = ref(1)
