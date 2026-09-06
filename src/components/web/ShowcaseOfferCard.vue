@@ -41,7 +41,7 @@
                 target="_blank"
                 rel="noopener noreferrer"
                 @click.stop
-              >点此跳转购卡</a>
+              >{{ active ? '点此跳转购卡' : '购卡前往小红书@TOHC' }}</a>
             </template>
           </div>
           <div class="card__body">

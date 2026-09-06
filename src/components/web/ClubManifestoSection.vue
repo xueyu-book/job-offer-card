@@ -222,6 +222,10 @@ defineExpose({
   font-weight: 400;
   line-height: 1.45;
   color: #ffffff;
+
+  &:not(:last-child) {
+    margin-bottom: 1.45em;
+  }
 }
 
 .club-manifesto-section__body .is-strike {
