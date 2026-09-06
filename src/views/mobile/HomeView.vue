@@ -90,11 +90,6 @@
         SUPPORT
       </a>
     </div>
-    <div
-      class="mobile-home__backdrop"
-      :class="{ active: activeCardId !== null }"
-      @click="setActiveCardId(null)"
-    />
   </main>
   
 </template>
@@ -338,6 +333,7 @@ body {
 .mobile-home.is-card-active {
   overflow: visible;
 
+  /* 抬到页面装饰之上，保证区块内全屏蒙层能盖住其它元素 */
   .mobile-home__container {
     z-index: 90;
   }
@@ -492,20 +488,5 @@ body {
   flex-shrink: 0;
   background: url('@/assets/images/mobile/home/card_bg.svg') center center / 100% 100% no-repeat;
   margin-left: -1px;
-}
-
-.mobile-home__backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 80;
-  background: rgba(2, 6, 23, 0.55);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.35s ease;
-}
-
-.mobile-home__backdrop.active {
-  opacity: 1;
-  pointer-events: auto;
 }
 </style>

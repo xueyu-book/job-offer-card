@@ -25,6 +25,11 @@
       class="card-showcase-section__scroller"
       @scroll="onScroll"
     >
+      <div
+        class="card-showcase-section__backdrop"
+        :class="{ active: activeCardId !== null }"
+        @click="setActiveCardId(null)"
+      />
       <div class="card-showcase-section__grid">
         <div
           v-for="(card, index) in cardList"
@@ -68,6 +73,7 @@ const CARD_REVEAL_STAGGER_COL_MS = 30
 const CARD_REVEAL_DURATION_MS = 750
 
 const activeCardId = inject('activeCardId', ref(null))
+const setActiveCardId = inject('setActiveCardId', () => {})
 const splashDone = inject('splashDone', ref(true))
 const muted = inject('muted', ref(true))
 const registerUnmuteHandler = inject('registerUnmuteHandler', null)
@@ -444,14 +450,22 @@ $card-reveal-duration: 0.75s;
   justify-content: center;
   padding: 16px 12px;
   position: relative;
+  overflow: hidden;
 }
 
 .card-showcase-section.active {
   z-index: 120;
-  overflow: visible;
+  transform-style: flat;
 
   .card-showcase-section__scroller {
-    overflow: hidden;
+    isolation: isolate;
+    /* 放大时禁止滚动，改为 visible，避免裁切 position:fixed 全屏蒙层 */
+    overflow: visible;
+  }
+
+  /* 压平 3D，让蒙层与当前卡片的 z-index 在同一上下文中比较 */
+  .card-showcase-section__grid {
+    transform-style: flat;
   }
 
   .card-showcase-section__item:not(.card-showcase-section__item--active) {
@@ -521,7 +535,24 @@ $card-reveal-duration: 0.75s;
   transform-style: preserve-3d;
 }
 
+.card-showcase-section__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.55);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+
+.card-showcase-section__backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .card-showcase-section__item {
+  position: relative;
+  z-index: 1;
   width: 95px;
   height: 152px;
   transform-style: preserve-3d;
@@ -544,7 +575,7 @@ $card-reveal-duration: 0.75s;
 }
 
 .card-showcase-section__item--active {
-  z-index: 1;
+  z-index: 60;
   overflow: visible;
 }
 </style>

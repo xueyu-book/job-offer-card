@@ -144,11 +144,6 @@
         SUPPORT
       </a>
     </div>
-    <div
-      class="web-home__backdrop"
-      :class="{ active: activeCardId !== null }"
-      @click="setActiveCardId(null)"
-    />
   </main>
 </template>
 
@@ -444,7 +439,7 @@ onUnmounted(() => {
     z-index: 2;
   }
 
-  /* 卡片在 container 内；需整体抬到蒙层之上，否则子元素 z-index 无法穿透 stacking context */
+  /* 抬到页面装饰之上，保证区块内全屏蒙层能盖住外链等元素 */
   .web-home__container {
     z-index: 90;
   }
@@ -716,21 +711,6 @@ onUnmounted(() => {
 .web-home__desc {
   font-size: 20px;
   color: rgba(248, 250, 252, 0.65);
-}
-
-.web-home__backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 80;
-  background: rgba(2, 6, 23, 0.55);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.35s ease;
-}
-
-.web-home__backdrop.active {
-  opacity: 1;
-  pointer-events: auto;
 }
 
 .card-grid {
