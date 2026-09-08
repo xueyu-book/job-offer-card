@@ -207,6 +207,7 @@ defineExpose({
 }
 
 .game-rules-section.is-select {
+  margin-left: 30px;
   display: flex;
   flex-direction: column;
   align-items: center;
