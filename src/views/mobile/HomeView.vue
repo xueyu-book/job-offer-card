@@ -95,7 +95,7 @@
 </template>
 
 <script setup>
-import { onUnmounted, provide, ref, watch } from 'vue'
+import { onUnmounted, provide, ref } from 'vue'
 import SplashScreen from '@/components/web/SplashScreen.vue'
 import FlipCountdown from '@/components/mobile/FlipCountdown.vue'
 import CardShowcaseSection from '@/components/mobile/CardShowcaseSection.vue'
@@ -125,6 +125,7 @@ const TAB_FRAME_MS = 80
 const countdownEndTime = '2026-11-30T23:59:59+08:00'
 
 const activeCardId = ref(null)
+const expandOriginRect = ref(null)
 const activeTab = ref(1)
 const splashDone = ref(false)
 const muted = ref(readMutedPreference())
@@ -147,33 +148,14 @@ const flashShowActive = ref(true)
 let flashTimer = null
 let flashToken = 0
 
-function setActiveCardId(id) {
+function setActiveCardId(id, originRect = null) {
   activeCardId.value = id
-}
-
-function onPointerDownOutsideCard(event) {
-  if (activeCardId.value == null) return
-  if (event.target?.closest?.('.card.active')) return
-  if (event.target?.closest?.('.card-image-viewer')) return
-  if (event.target?.closest?.('.mobile-home__actions, .mobile-home__site')) return
-  setActiveCardId(null)
-}
-
-function bindCardDismiss() {
-  window.addEventListener('pointerdown', onPointerDownOutsideCard, true)
-}
-
-function unbindCardDismiss() {
-  window.removeEventListener('pointerdown', onPointerDownOutsideCard, true)
+  expandOriginRect.value = id == null ? null : originRect
 }
 
 provide('activeCardId', activeCardId)
+provide('expandOriginRect', expandOriginRect)
 provide('setActiveCardId', setActiveCardId)
-
-watch(activeCardId, (id) => {
-  unbindCardDismiss()
-  if (id != null) bindCardDismiss()
-})
 
 const tabs = [
   { id: 1, label: '卡牌展示', icon: tabIcon1, activeIcon: tabIcon1Active, component: CardShowcaseSection },
@@ -281,7 +263,6 @@ function selectTab(id) {
 onUnmounted(() => {
   flashToken += 1
   clearFlashTimer()
-  unbindCardDismiss()
   if (navAudio) {
     navAudio.pause()
     navAudio = null
@@ -331,13 +312,6 @@ body {
 }
 
 .mobile-home.is-card-active {
-  overflow: visible;
-
-  /* 抬到页面装饰之上，保证区块内全屏蒙层能盖住其它元素 */
-  .mobile-home__container {
-    z-index: 90;
-  }
-
   .mobile-home__actions {
     z-index: 2;
   }

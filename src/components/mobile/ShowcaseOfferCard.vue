@@ -71,7 +71,7 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, inject, onMounted, onUnmounted, ref } from 'vue'
 import { round } from '@/utils/math'
 import { useSpring } from '@/composables/useSpring'
 import cardSfx from '@/assets/audio/card.mp3'
@@ -88,7 +88,11 @@ const props = defineProps({
   price: { type: [String, Number], default: '' },
   rate: { type: [String, Number], default: '' },
   prize: { type: [String, Number], default: '' },
-  date: { type: [String, Number], default: '' }
+  date: { type: [String, Number], default: '' },
+  /** grid：列表态；overlay：Teleport 放大态 */
+  variant: { type: String, default: 'grid' },
+  /** 从列表卡片位置飞入时的起点（viewport rect） */
+  originRect: { type: Object, default: null }
 })
 
 function hasHeaderValue(value) {
@@ -136,8 +140,11 @@ const IDLE_SCALE_X = CARD_WIDTH / POPOVER_WIDTH
 const IDLE_SCALE_Y = CARD_HEIGHT / POPOVER_HEIGHT
 const DOUBLE_TAP_MS = 280
 
+const isOverlay = computed(() => props.variant === 'overlay')
 const cardRef = ref(null)
-const active = computed(() => activeCardId.value === props.id)
+const active = computed(() =>
+  isOverlay.value ? true : activeCardId.value === props.id
+)
 const flipped = ref(false)
 const imageViewerOpen = ref(false)
 let flipAngle = 0
@@ -189,16 +196,15 @@ function getScreenCenter() {
   }
 }
 
-function setCenter() {
-  const el = cardRef.value
-  if (!el) return
+function getOriginTranslate() {
+  const rect = props.originRect
+  if (!rect) return { x: 0, y: 0 }
 
-  const rect = el.getBoundingClientRect()
   const center = getScreenCenter()
-  springTranslate.set({
-    x: round(center.x - rect.x - rect.width / 2),
-    y: round(center.y - rect.y - rect.height / 2)
-  })
+  return {
+    x: round(rect.left + rect.width / 2 - center.x),
+    y: round(rect.top + rect.height / 2 - center.y)
+  }
 }
 
 function clearFlipTimer() {
@@ -216,18 +222,21 @@ function closeImageViewer() {
   imageViewerOpen.value = false
 }
 
-function popover() {
-  if (!cardRef.value) return
+function applyOriginPose() {
+  springTranslate.set(getOriginTranslate(), { hard: true })
+  springScale.set({ x: IDLE_SCALE_X, y: IDLE_SCALE_Y }, { hard: true })
+}
 
+function popover() {
   flipped.value = false
   flipAngle = 0
   closeImageViewer()
   clearFlipTimer()
   lastTapAt = 0
-  setCenter()
   springRotateDelta.set({ x: 0, y: 0 }, { hard: true })
   flipAngle = 360
   springRotateDelta.set({ x: flipAngle, y: 0 })
+  springTranslate.set({ x: 0, y: 0 })
   springScale.set({ x: 1, y: 1 })
 }
 
@@ -238,21 +247,34 @@ function toggleFace() {
   springRotateDelta.set({ x: flipAngle, y: 0 })
 }
 
+/** 关闭缓冲：缩回列表位置 */
 function retreat() {
   flipped.value = false
   flipAngle = 0
   closeImageViewer()
   clearFlipTimer()
   lastTapAt = 0
-  springScale.set({ x: IDLE_SCALE_X, y: IDLE_SCALE_Y }, { soft: true })
-  springTranslate.set({ x: 0, y: 0 }, { soft: true })
   springRotateDelta.set({ x: 0, y: 0 }, { hard: true })
+  springTranslate.set(getOriginTranslate(), { soft: true })
+  springScale.set({ x: IDLE_SCALE_X, y: IDLE_SCALE_Y }, { soft: true })
 }
 
 function onCardClick() {
-  if (!active.value) {
+  if (!isOverlay.value) {
     playCardAudio()
-    setActiveCardId(props.id)
+    const el = cardRef.value
+    const rect = el?.getBoundingClientRect()
+    setActiveCardId(
+      props.id,
+      rect
+        ? {
+            left: rect.left,
+            top: rect.top,
+            width: rect.width,
+            height: rect.height
+          }
+        : null
+    )
     return
   }
 
@@ -276,34 +298,36 @@ function onCardClick() {
 }
 
 function reposition() {
+  if (!isOverlay.value) return
   clearTimeout(repositionTimer)
   repositionTimer = setTimeout(() => {
-    if (active.value) setCenter()
+    springTranslate.set({ x: 0, y: 0 })
+    springScale.set({ x: 1, y: 1 })
   }, 300)
 }
 
-watch(active, (isActive) => {
-  if (isActive) {
-    requestAnimationFrame(() => popover())
-  } else {
-    retreat()
-  }
-})
-
 onMounted(() => {
-  window.addEventListener('scroll', reposition, { passive: true })
+  if (!isOverlay.value) return
+
+  applyOriginPose()
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => popover())
+  })
   window.addEventListener('resize', reposition)
   window.visualViewport?.addEventListener('resize', reposition)
   window.visualViewport?.addEventListener('scroll', reposition)
 })
 
 onUnmounted(() => {
-  window.removeEventListener('scroll', reposition)
   window.removeEventListener('resize', reposition)
   window.visualViewport?.removeEventListener('resize', reposition)
   window.visualViewport?.removeEventListener('scroll', reposition)
   clearTimeout(repositionTimer)
   clearFlipTimer()
+})
+
+defineExpose({
+  retreat
 })
 </script>
 
@@ -482,7 +506,7 @@ onUnmounted(() => {
 .card-image-viewer {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: 10050;
   display: flex;
   align-items: center;
   justify-content: center;

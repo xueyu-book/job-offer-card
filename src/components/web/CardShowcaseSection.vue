@@ -25,11 +25,6 @@
       class="card-showcase-section__scroller"
       @scroll="onScroll"
     >
-      <div
-        class="card-showcase-section__backdrop"
-        :class="{ active: activeCardId !== null }"
-        @click="setActiveCardId(null)"
-      />
       <div class="card-showcase-section__grid">
         <div
           v-for="(card, index) in cardList"
@@ -53,12 +48,33 @@
         </div>
       </div>
     </div>
+
+    <CardExpandOverlay
+      :visible="activeCard != null"
+      @leave="onOverlayLeave"
+      @close="onOverlayClose"
+    >
+      <ShowcaseOfferCard
+        v-if="activeCard"
+        ref="overlayCardRef"
+        :key="activeCard.id"
+        variant="overlay"
+        :id="activeCard.id"
+        :serial="activeCard.serial"
+        :price="activeCard.price"
+        :rate="activeCard.rate"
+        :prize="activeCard.prize"
+        :date="activeCard.date"
+        :origin-rect="expandOriginRect"
+      />
+    </CardExpandOverlay>
   </section>
 </template>
 
 <script setup>
-import { inject, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, inject, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import ShowcaseOfferCard from './ShowcaseOfferCard.vue'
+import CardExpandOverlay from './CardExpandOverlay.vue'
 import { cardList } from '@/content/cardShowcaseContent'
 import wallSfx from '@/assets/audio/wall.mp3'
 import { createStandaloneSfx, requestAudioPermission, runWithWeChatAudioUnlock } from '@/utils/audio'
@@ -77,6 +93,7 @@ const CARD_REVEAL_DURATION_MS = 750
 
 const activeCardId = inject('activeCardId', ref(null))
 const setActiveCardId = inject('setActiveCardId', () => {})
+const expandOriginRect = inject('expandOriginRect', ref(null))
 const splashDone = inject('splashDone', ref(true))
 const muted = inject('muted', ref(true))
 const registerUnmuteHandler = inject('registerUnmuteHandler', null)
@@ -87,6 +104,19 @@ const wallSliding = ref(false)
 const wallSettled = ref(false)
 const cardsRevealed = ref(false)
 const cardsSettled = ref(false)
+
+const activeCard = computed(
+  () => cardList.find((card) => card.id === activeCardId.value) || null
+)
+const overlayCardRef = ref(null)
+
+function onOverlayLeave() {
+  overlayCardRef.value?.retreat?.()
+}
+
+function onOverlayClose() {
+  setActiveCardId(null)
+}
 
 const AUDIO_UNLOCK_EVENTS = ['pointerdown', 'touchstart', 'keydown']
 
@@ -495,23 +525,9 @@ $interact-clip-pad: 40px;
 }
 
 .card-showcase-section.active {
-  z-index: 120;
-  transform-style: flat;
-
   .card-showcase-section__scroller {
-    $clip-pad: 120px;
-    isolation: isolate;
-    /* 放大时禁止滚动，改为 visible，避免裁切 position:fixed 全屏蒙层 */
-    overflow: visible;
-    width: calc(100% + #{$clip-pad * 2});
-    height: calc(#{$scroller-height} + #{$clip-pad * 2});
-    margin: -$clip-pad;
-    padding: $clip-pad;
-  }
-
-  /* 压平 3D，让蒙层与当前卡片的 z-index 在同一上下文中比较 */
-  .card-showcase-section__grid {
-    transform-style: flat;
+    overflow: hidden;
+    touch-action: none;
   }
 
   .card-showcase-section__item:not(.card-showcase-section__item--active) {
@@ -583,21 +599,6 @@ $interact-clip-pad: 40px;
   transform-style: preserve-3d;
 }
 
-.card-showcase-section__backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  background: rgba(0, 0, 0, 0.55);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.35s ease;
-}
-
-.card-showcase-section__backdrop.active {
-  opacity: 1;
-  pointer-events: auto;
-}
-
 .card-showcase-section__item {
   position: relative;
   z-index: 1;
@@ -623,7 +624,8 @@ $interact-clip-pad: 40px;
 }
 
 .card-showcase-section__item--active {
-  z-index: 60;
-  overflow: visible;
+  /* 占位保留布局，实际放大卡在 Teleport 层 */
+  visibility: hidden;
+  pointer-events: none;
 }
 </style>

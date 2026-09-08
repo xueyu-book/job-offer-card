@@ -186,6 +186,7 @@ const PAGE_DOT_TOP_MAX = 606
 const countdownEndTime = '2026-11-30T23:59:59+08:00'
 
 const activeCardId = ref(null)
+const expandOriginRect = ref(null)
 const activeTab = ref(1)
 const splashDone = ref(false)
 const muted = ref(readMutedPreference())
@@ -244,32 +245,14 @@ const flashShowActive = ref(true)
 let flashTimer = null
 let flashToken = 0
 
-function setActiveCardId(id) {
+function setActiveCardId(id, originRect = null) {
   activeCardId.value = id
-}
-
-function onPointerDownOutsideCard(event) {
-  if (activeCardId.value == null) return
-  if (event.target?.closest?.('.card.active')) return
-  if (event.target?.closest?.('.web-home__mute, .web-home__provision, .web-home__external, .web-home__site')) return
-  setActiveCardId(null)
-}
-
-function bindCardDismiss() {
-  window.addEventListener('pointerdown', onPointerDownOutsideCard, true)
-}
-
-function unbindCardDismiss() {
-  window.removeEventListener('pointerdown', onPointerDownOutsideCard, true)
+  expandOriginRect.value = id == null ? null : originRect
 }
 
 provide('activeCardId', activeCardId)
+provide('expandOriginRect', expandOriginRect)
 provide('setActiveCardId', setActiveCardId)
-
-watch(activeCardId, (id) => {
-  unbindCardDismiss()
-  if (id != null) bindCardDismiss()
-})
 
 watch(activeTab, () => {
   pagerProgress.value = 0
@@ -400,7 +383,6 @@ function selectTab(id) {
 onUnmounted(() => {
   flashToken += 1
   clearFlashTimer()
-  unbindCardDismiss()
   if (navAudio) {
     navAudio.pause()
     navAudio = null
@@ -432,16 +414,9 @@ onUnmounted(() => {
 }
 
 .web-home.is-card-active {
-  overflow: visible;
-
   .web-home__mute,
   .web-home__provision {
     z-index: 2;
-  }
-
-  /* 抬到页面装饰之上，保证区块内全屏蒙层能盖住外链等元素 */
-  .web-home__container {
-    z-index: 90;
   }
 }
 

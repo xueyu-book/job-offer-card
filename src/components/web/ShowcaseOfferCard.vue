@@ -54,7 +54,7 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, inject, onMounted, onUnmounted, ref } from 'vue'
 import { clamp, round } from '@/utils/math'
 import { useSpring } from '@/composables/useSpring'
 import cardSfx from '@/assets/audio/card.mp3'
@@ -71,7 +71,11 @@ const props = defineProps({
   price: { type: [String, Number], default: '' },
   rate: { type: [String, Number], default: '' },
   prize: { type: [String, Number], default: '' },
-  date: { type: [String, Number], default: '' }
+  date: { type: [String, Number], default: '' },
+  /** grid：列表态；overlay：Teleport 放大态 */
+  variant: { type: String, default: 'grid' },
+  /** 从列表卡片位置飞入时的起点（viewport rect） */
+  originRect: { type: Object, default: null }
 })
 
 function hasHeaderValue(value) {
@@ -116,8 +120,11 @@ const CARD_HEIGHT = 300
 const POPOVER_SCALE_MAX = 1.75
 const IDLE_SCALE = 1 / POPOVER_SCALE_MAX
 
+const isOverlay = computed(() => props.variant === 'overlay')
 const cardRef = ref(null)
-const active = computed(() => activeCardId.value === props.id)
+const active = computed(() =>
+  isOverlay.value ? true : activeCardId.value === props.id
+)
 const interacting = ref(false)
 const flipped = ref(false)
 let flipAngle = 0
@@ -172,9 +179,11 @@ function updateSprings(rotate, glare) {
 }
 
 function interact(e) {
-  if (activeCardId.value && activeCardId.value !== props.id) {
-    interacting.value = false
-    return
+  if (!isOverlay.value) {
+    if (activeCardId.value != null) {
+      interacting.value = false
+      return
+    }
   }
 
   interacting.value = true
@@ -235,34 +244,46 @@ function interactEnd(_e, delay = 500) {
   }, delay)
 }
 
-function setCenter() {
-  const el = cardRef.value
-  if (!el) return
+function getExpandedScale() {
+  const scaleW = (window.innerWidth / CARD_WIDTH) * 0.9
+  const scaleH = (window.innerHeight / CARD_HEIGHT) * 0.9
+  return Math.min(scaleW, scaleH, POPOVER_SCALE_MAX) / POPOVER_SCALE_MAX
+}
 
-  const rect = el.getBoundingClientRect()
-  const view = document.documentElement
-  springTranslate.set({
-    x: round(view.clientWidth / 2 - rect.x - rect.width / 2),
-    y: round(view.clientHeight / 2 - rect.y - rect.height / 2)
-  })
+function getOriginTranslate() {
+  const rect = props.originRect
+  if (!rect) return { x: 0, y: 0 }
+
+  return {
+    x: round(rect.left + rect.width / 2 - window.innerWidth / 2),
+    y: round(rect.top + rect.height / 2 - window.innerHeight / 2)
+  }
+}
+
+function applyOriginPose() {
+  springTranslate.set(getOriginTranslate(), { hard: true })
+  springScale.set(IDLE_SCALE, { hard: true })
 }
 
 function popover() {
-  const el = cardRef.value
-  if (!el) return
-
-  const scaleW = (window.innerWidth / CARD_WIDTH) * 0.9
-  const scaleH = (window.innerHeight / CARD_HEIGHT) * 0.9
-  const visualScale = Math.min(scaleW, scaleH, POPOVER_SCALE_MAX)
-
   flipped.value = false
   flipAngle = 0
-  setCenter()
   springRotateDelta.set({ x: 0, y: 0 }, { hard: true })
   flipAngle = 360
   springRotateDelta.set({ x: flipAngle, y: 0 })
-  springScale.set(visualScale / POPOVER_SCALE_MAX)
+  springTranslate.set({ x: 0, y: 0 })
+  springScale.set(getExpandedScale())
   interactEnd(null, 1000)
+}
+
+/** 关闭缓冲：缩回列表位置 */
+function retreat() {
+  flipped.value = false
+  flipAngle = 0
+  springRotateDelta.set({ x: 0, y: 0 }, { hard: true })
+  springTranslate.set(getOriginTranslate(), { soft: true })
+  springScale.set(IDLE_SCALE, { soft: true })
+  interactEnd(null, 100)
 }
 
 function toggleFace() {
@@ -273,49 +294,54 @@ function toggleFace() {
   interactEnd(null, 600)
 }
 
-function retreat() {
-  flipped.value = false
-  flipAngle = 0
-  springScale.set(IDLE_SCALE, { soft: true })
-  springTranslate.set({ x: 0, y: 0 }, { soft: true })
-  springRotateDelta.set({ x: 0, y: 0 }, { hard: true })
-  interactEnd(null, 100)
-}
-
 function onCardClick() {
-  if (!active.value) {
-    playCardAudio()
-    setActiveCardId(props.id)
+  if (isOverlay.value) {
+    toggleFace()
     return
   }
-  toggleFace()
+
+  playCardAudio()
+  const el = cardRef.value
+  const rect = el?.getBoundingClientRect()
+  setActiveCardId(
+    props.id,
+    rect
+      ? {
+          left: rect.left,
+          top: rect.top,
+          width: rect.width,
+          height: rect.height
+        }
+      : null
+  )
 }
 
 function reposition() {
+  if (!isOverlay.value) return
   clearTimeout(repositionTimer)
   repositionTimer = setTimeout(() => {
-    if (active.value) setCenter()
+    springScale.set(getExpandedScale())
   }, 300)
 }
 
-watch(active, (isActive) => {
-  if (isActive) {
-    requestAnimationFrame(() => popover())
-  } else {
-    retreat()
-  }
-})
-
 onMounted(() => {
-  window.addEventListener('scroll', reposition, { passive: true })
+  if (!isOverlay.value) return
+
+  applyOriginPose()
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => popover())
+  })
   window.addEventListener('resize', reposition)
 })
 
 onUnmounted(() => {
-  window.removeEventListener('scroll', reposition)
   window.removeEventListener('resize', reposition)
   clearTimeout(repositionTimer)
   if (rafId !== null) cancelAnimationFrame(rafId)
+})
+
+defineExpose({
+  retreat
 })
 </script>
 
