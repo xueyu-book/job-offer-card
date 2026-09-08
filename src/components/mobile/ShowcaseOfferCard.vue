@@ -129,7 +129,7 @@ const cardBackSrc = computed(() => cardImageSrc(`${props.serial}_back.jpg`))
 
 const activeCardId = inject('activeCardId', ref(null))
 const setActiveCardId = inject('setActiveCardId', () => {})
-const muted = inject('muted', ref(true))
+const muted = inject('muted', ref(false))
 
 const CARD_WIDTH = 95
 const CARD_HEIGHT = 152

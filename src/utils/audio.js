@@ -2,26 +2,26 @@ const MUTE_STORAGE_KEY = 'job-offer-card:muted'
 const MUTE_TTL_MS = 24 * 60 * 60 * 1000
 
 export function readMutedPreference() {
-  if (typeof localStorage === 'undefined') return true
+  if (typeof localStorage === 'undefined') return false
 
   try {
     const raw = localStorage.getItem(MUTE_STORAGE_KEY)
-    if (!raw) return true
+    if (!raw) return false
 
     const data = JSON.parse(raw)
     if (typeof data?.muted !== 'boolean' || typeof data?.expiresAt !== 'number') {
       localStorage.removeItem(MUTE_STORAGE_KEY)
-      return true
+      return false
     }
 
     if (Date.now() >= data.expiresAt) {
       localStorage.removeItem(MUTE_STORAGE_KEY)
-      return true
+      return false
     }
 
     return data.muted
   } catch {
-    return true
+    return false
   }
 }
 
