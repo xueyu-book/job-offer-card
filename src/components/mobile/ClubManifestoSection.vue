@@ -51,7 +51,7 @@ import { manifestoSections } from '@/content/clubManifestoContent'
 <style lang="scss">
 @font-face {
   font-family: 'Dream Han Sans W5';
-  src: url('@/assets/fonts/mengyuan/DreamHanSansExpCN-W5.woff2') format('woff2');
+  src: url('@/assets/fonts/mengyuan/DreamHanSansExpCN-W5.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -59,7 +59,7 @@ import { manifestoSections } from '@/content/clubManifestoContent'
 
 @font-face {
   font-family: 'Dream Han Sans W12';
-  src: url('@/assets/fonts/mengyuan/DreamHanSansExpCN-W12.woff2') format('woff2');
+  src: url('@/assets/fonts/mengyuan/DreamHanSansExpCN-W12.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;

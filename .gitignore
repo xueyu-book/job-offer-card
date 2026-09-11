@@ -3,8 +3,3 @@ dist
 .DS_Store
 *.local
 .vite
-
-# local asset optimization tooling
-.venv-optimize/
-*.bak
-*.ttf.bak

@@ -348,7 +348,7 @@ defineExpose({
 <style lang="scss">
 @font-face {
   font-family: 'Dream Han Sans W10';
-  src: url('@/assets/fonts/mengyuan/DreamHanSansExpCN-W10.woff2') format('woff2');
+  src: url('@/assets/fonts/mengyuan/DreamHanSansExpCN-W10.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
