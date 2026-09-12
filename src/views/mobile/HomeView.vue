@@ -76,6 +76,13 @@
 
     <div class="mobile-home__site">
       <a
+        href="https://beian.miit.gov.cn"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        粤ICP备2026126915号
+      </a>
+      <a
         href="https://www.theotherhandclub.com/"
         target="_blank"
         rel="noopener noreferrer"
