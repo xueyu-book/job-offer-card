@@ -1,4 +1,4 @@
-name: Deploy to Aliyun ECS
+name: Deploy to Aliyun OSS
 
 on:
   push:
@@ -27,21 +27,86 @@ jobs:
           npm ci
           npm run build
 
-      - name: Setup SSH key
-        env:
-          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      - name: Install ossutil
         run: |
-          mkdir -p ~/.ssh
-          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null || true
+          curl -fsSL -o ossutil.zip "https://gosspublic.alicdn.com/ossutil/v2/2.4.0/ossutil-2.4.0-linux-amd64.zip"
+          echo "85edf66b2fb7238f5c7e25cab820cf29312319fe4935b7c86a6b8485eb434f3c  ossutil.zip" | sha256sum -c -
+          unzip -q ossutil.zip
+          sudo mv ossutil-2.4.0-linux-amd64/ossutil /usr/local/bin/ossutil
+          ossutil version
 
-      - name: Rsync dist to server
+      - name: Upload dist to OSS
         env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          OSS_ACCESS_KEY_ID: ${{ secrets.OSS_ACCESS_KEY_ID }}
+          OSS_ACCESS_KEY_SECRET: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
+          OSS_ENDPOINT: ${{ secrets.OSS_ENDPOINT }}
+          OSS_REGION: cn-beijing
+          OSS_BUCKET: ${{ secrets.OSS_BUCKET }}
         run: |
-          rsync -az --delete \
-            -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new" \
-            dist/ \
-            "${DEPLOY_USER}@${DEPLOY_HOST}:/var/www/job-offer-card/"
+          set -euo pipefail
+
+          ossutil sync dist/assets "oss://${OSS_BUCKET}/assets" \
+            --force \
+            --update \
+            --cache-control "public, max-age=31536000, immutable"
+
+          shopt -s nullglob
+          for file in dist/*; do
+            [ -f "$file" ] || continue
+            name="$(basename "$file")"
+            case "$name" in
+              index.html|.DS_Store) continue ;;
+            esac
+            ossutil cp "$file" "oss://${OSS_BUCKET}/${name}" \
+              --force \
+              --cache-control "public, max-age=86400"
+          done
+
+          ossutil cp dist/index.html "oss://${OSS_BUCKET}/index.html" \
+            --force \
+            --cache-control "no-cache"
+
+          ossutil sync dist/assets "oss://${OSS_BUCKET}/assets" \
+            --force \
+            --update \
+            --delete \
+            --cache-control "public, max-age=31536000, immutable"
+
+          mapfile -t keep < <(find dist -maxdepth 1 -type f ! -name '.DS_Store' -printf '%f\n')
+          ossutil ls "oss://${OSS_BUCKET}/" -d --short-format > /tmp/oss-root.txt
+          while IFS= read -r line || [ -n "$line" ]; do
+            key="${line#oss://${OSS_BUCKET}/}"
+            case "$key" in
+              ""|*[!A-Za-z0-9._-]*|*/*) continue ;;
+            esac
+            found=0
+            for name in "${keep[@]}"; do
+              if [ "$name" = "$key" ]; then
+                found=1
+                break
+              fi
+            done
+            if [ "$found" -eq 0 ]; then
+              ossutil rm "oss://${OSS_BUCKET}/${key}" --force
+            fi
+          done < /tmp/oss-root.txt
+
+      - name: Refresh CDN index.html
+        env:
+          OSS_ACCESS_KEY_ID: ${{ secrets.OSS_ACCESS_KEY_ID }}
+          OSS_ACCESS_KEY_SECRET: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
+          CDN_REFRESH_URL: ${{ secrets.CDN_REFRESH_URL }}
+        run: |
+          set -euo pipefail
+          curl -fsSL -o aliyun.tgz "https://aliyuncli.alicdn.com/aliyun-cli-linux-latest-amd64.tgz"
+          tar -xzf aliyun.tgz
+          ./aliyun configure set \
+            --profile default \
+            --mode AK \
+            --region cn-beijing \
+            --access-key-id "$OSS_ACCESS_KEY_ID" \
+            --access-key-secret "$OSS_ACCESS_KEY_SECRET" \
+            >/dev/null
+          ./aliyun cdn RefreshObjectCaches \
+            --ObjectPath "$CDN_REFRESH_URL" \
+            --ObjectType File
