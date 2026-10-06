@@ -75,27 +75,44 @@
     </div>
 
     <div class="mobile-home__site">
-      <a
-        href="https://beian.miit.gov.cn"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        粤ICP备2026126915号
-      </a>
-      <a
-        href="https://www.theotherhandclub.com/"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        THEOTHERHANDCLUB.COM
-      </a>
-      <a
-        href="https://www.xiaohongshu.com/user/profile/69fb3d8e0000000002001c08?xsec_token=ABpN3sUtBdDY6wccECFpZQ9qkfXazFRjUta0KNLon1ocY%3D&xsec_source=pc_search"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        SUPPORT
-      </a>
+      <div class="mobile-home__site-row">
+        <a
+          href="https://beian.miit.gov.cn"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          粤ICP备2026126915号
+        </a>
+        <a
+          class="mobile-home__filing"
+          href="https://beian.mps.gov.cn/#/query/webSearch?code=44010402003853"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <img
+            src="@/assets/images/filing_icon.jpg"
+            alt=""
+            draggable="false"
+          />
+          粤公网安备44010402003853号
+        </a>
+      </div>
+      <div class="mobile-home__site-row">
+        <a
+          href="https://www.theotherhandclub.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          THEOTHERHANDCLUB.COM
+        </a>
+        <a
+          href="https://www.xiaohongshu.com/user/profile/69fb3d8e0000000002001c08?xsec_token=ABpN3sUtBdDY6wccECFpZQ9qkfXazFRjUta0KNLon1ocY%3D&xsec_source=pc_search"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          SUPPORT
+        </a>
+      </div>
     </div>
   </main>
   
@@ -382,19 +399,45 @@ body {
   transform: translateX(-50%);
   z-index: 3;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 4px;
+  width: max-content;
+  max-width: calc(100% - 16px);
   padding-bottom: env(safe-area-inset-bottom);
   font-family: 'Nacelle', sans-serif;
   font-weight: 400;
   font-size: 8px;
   line-height: 1;
   color: #f8fafc;
-  white-space: nowrap;
 
   a {
     color: inherit;
     cursor: pointer;
+    white-space: nowrap;
+  }
+}
+
+.mobile-home__site-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  max-width: 100%;
+}
+
+.mobile-home__filing {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+
+  img {
+    display: block;
+    width: 10px;
+    height: 11px;
+    flex-shrink: 0;
+    object-fit: contain;
   }
 }
 

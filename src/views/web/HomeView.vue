@@ -137,6 +137,19 @@
         粤ICP备2026126915号
       </a>
       <a
+        class="web-home__filing"
+        href="https://beian.mps.gov.cn/#/query/webSearch?code=44010402003853"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <img
+          src="@/assets/images/filing_icon.jpg"
+          alt=""
+          draggable="false"
+        />
+        粤公网安备44010402003853号
+      </a>
+      <a
         href="https://www.theotherhandclub.com/"
         target="_blank"
         rel="noopener noreferrer"
@@ -538,6 +551,20 @@ onUnmounted(() => {
   a {
     color: inherit;
     cursor: pointer;
+  }
+}
+
+.web-home__filing {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  img {
+    display: block;
+    width: 12px;
+    height: 14px;
+    flex-shrink: 0;
+    object-fit: contain;
   }
 }
 
