@@ -66,6 +66,7 @@ const emit = defineEmits(['done'])
 const DURATION_MS = 2000
 const LEAVE_MS = 220
 const THEME_COLOR_PAGE = '#ffffff'
+const THEME_COLOR_MOBILE = '#070001'
 const THEME_COLOR_SPLASH = '#7b00ff'
 
 const visible = ref(true)
@@ -90,10 +91,18 @@ function setThemeColor(color) {
   document.head.appendChild(meta)
 }
 
+function restingThemeColor() {
+  return isMobile.value ? THEME_COLOR_MOBILE : THEME_COLOR_PAGE
+}
+
+function splashThemeColor() {
+  return isMobile.value ? THEME_COLOR_MOBILE : THEME_COLOR_SPLASH
+}
+
 function emitDone() {
   if (doneEmitted) return
   doneEmitted = true
-  setThemeColor(THEME_COLOR_PAGE)
+  setThemeColor(restingThemeColor())
   emit('done')
 }
 
@@ -132,8 +141,8 @@ function startSplash() {
   leaving.value = false
   playKey.value += 1
   visible.value = true
-  // 移动端始终白顶底栏；桌面开屏可用紫色主题
-  setThemeColor(isMobile.value ? THEME_COLOR_PAGE : THEME_COLOR_SPLASH)
+  // 移动端顶底栏跟页面底色，避免 Safari 采到开屏紫；桌面开屏用紫色主题
+  setThemeColor(splashThemeColor())
   scheduleClose()
 }
 
@@ -153,7 +162,7 @@ function onPrerenderingChange() {
 
 onMounted(() => {
   window.addEventListener('pageshow', onPageShow)
-  setThemeColor(isMobile.value ? THEME_COLOR_PAGE : THEME_COLOR_SPLASH)
+  setThemeColor(splashThemeColor())
 
   if (document.prerendering) {
     // 预渲染期间只遮罩，不启动关闭计时，等真正展示时再播动画
@@ -171,7 +180,7 @@ onBeforeUnmount(() => {
   document.removeEventListener('prerenderingchange', onPrerenderingChange)
   visible.value = false
   leaving.value = false
-  setThemeColor(THEME_COLOR_PAGE)
+  setThemeColor(restingThemeColor())
   emitDone()
 })
 </script>
@@ -255,15 +264,15 @@ $slide-distance: 56px;
     pointer-events: none;
   }
 
-  // 移动端：外层白底留给 Safari 顶底栏采样；紫色只铺在中间舞台
+  // 移动端：上下边缘留页面底色，供 Safari 采样顶底栏；紫色只铺在安全区以内
   &--mobile {
-    background: #ffffff;
+    background: #070001;
 
     .splash-screen__stage {
       position: absolute;
-      top: 0;
+      top: env(safe-area-inset-top, 0px);
       right: 0;
-      bottom: 0;
+      bottom: env(safe-area-inset-bottom, 0px);
       left: 0;
       background: #7b00ff;
       pointer-events: none;

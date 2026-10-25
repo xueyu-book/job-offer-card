@@ -303,7 +303,7 @@ onUnmounted(() => {
   font-display: swap;
 }
 
-/* 移动端锁定文档层：禁止整页滚动，避免露出 body 浅色底 */
+/* 移动端锁定文档层：禁止整页滚动，空隙用页面底色，避免 Safari 顶底栏留白或残留开屏紫 */
 html,
 body,
 #app {
@@ -311,7 +311,7 @@ body,
   height: 100%;
   overflow: hidden;
   overscroll-behavior: none;
-  background: #ffffff;
+  background: #070001;
 }
 
 body {
