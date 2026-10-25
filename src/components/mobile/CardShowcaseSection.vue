@@ -20,11 +20,7 @@
         alt=""
       />
     </div>
-    <div
-      ref="scrollerRef"
-      class="card-showcase-section__scroller"
-      @scroll="onScroll"
-    >
+    <div class="card-showcase-section__scroller">
       <div class="card-showcase-section__grid">
         <div
           v-for="(card, index) in cardList"
@@ -81,9 +77,6 @@ import { cardList } from '@/content/cardShowcaseContent'
 import wallSfx from '@/assets/audio/wall.mp3'
 import { createStandaloneSfx, requestAudioPermission, runWithWeChatAudioUnlock } from '@/utils/audio'
 
-const CARD_HEIGHT = 152
-const ROW_GAP = 21
-const ROW_STEP = CARD_HEIGHT + ROW_GAP
 const WALL_SLIDE_DURATION_MS = 2000
 const CARD_GRID_COLUMNS = 2
 const CARD_REVEAL_STAGGER_ROW_MS = 55
@@ -96,7 +89,6 @@ const expandOriginRect = inject('expandOriginRect', ref(null))
 const splashDone = inject('splashDone', ref(true))
 const muted = inject('muted', ref(false))
 const registerUnmuteHandler = inject('registerUnmuteHandler', null)
-const scrollerRef = ref(null)
 const wallSliding = ref(false)
 const wallSettled = ref(false)
 const cardsRevealed = ref(false)
@@ -117,9 +109,6 @@ function onOverlayClose() {
 
 const AUDIO_UNLOCK_EVENTS = ['pointerdown', 'touchstart', 'keydown']
 
-let snapTimer = null
-let programmatic = false
-let programmaticTimer = null
 let wallSettleTimer = null
 let cardSettleTimer = null
 let revealFrame = null
@@ -179,56 +168,6 @@ function triggerCardsReveal() {
       })
     })
   })
-}
-
-function clampScrollTop(top) {
-  const el = scrollerRef.value
-  if (!el) return 0
-  const max = Math.max(el.scrollHeight - el.clientHeight, 0)
-  return Math.min(Math.max(0, top), max)
-}
-
-function nearestRowTop(scrollTop) {
-  return clampScrollTop(Math.round(scrollTop / ROW_STEP) * ROW_STEP)
-}
-
-function scrollToTop(top, behavior = 'smooth') {
-  const el = scrollerRef.value
-  if (!el) return
-
-  const next = clampScrollTop(top)
-  if (Math.abs(el.scrollTop - next) < 1) return
-
-  programmatic = true
-  clearTimeout(programmaticTimer)
-  el.scrollTo({ top: next, behavior })
-  programmaticTimer = setTimeout(() => {
-    programmatic = false
-  }, behavior === 'smooth' ? 450 : 0)
-}
-
-function snapToNearestRow() {
-  const el = scrollerRef.value
-  if (!el || programmatic || activeCardId.value != null) return
-
-  const target = nearestRowTop(el.scrollTop)
-  if (Math.abs(el.scrollTop - target) < 1) return
-  scrollToTop(target)
-}
-
-function scheduleSnap() {
-  if (programmatic || activeCardId.value != null) return
-  clearTimeout(snapTimer)
-  snapTimer = setTimeout(snapToNearestRow, 180)
-}
-
-function onScroll() {
-  scheduleSnap()
-}
-
-function onScrollEnd() {
-  clearTimeout(snapTimer)
-  snapToNearestRow()
 }
 
 function ensureWallAudio() {
@@ -425,7 +364,6 @@ watch(muted, (isMuted) => {
 })
 
 onMounted(() => {
-  scrollerRef.value?.addEventListener('scrollend', onScrollEnd)
   // 开声音按钮点击栈内同步补播（不能只靠 watch，真机手势会丢）
   unregisterUnmuteHandler = registerUnmuteHandler?.(() => {
     if (!wallSoundStarted) playWallAudio()
@@ -440,9 +378,6 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  scrollerRef.value?.removeEventListener('scrollend', onScrollEnd)
-  clearTimeout(snapTimer)
-  clearTimeout(programmaticTimer)
   if (wallSettleTimer !== null) {
     window.clearTimeout(wallSettleTimer)
   }

@@ -83,7 +83,7 @@ import { createStandaloneSfx, requestAudioPermission, runWithWeChatAudioUnlock }
 const CARD_HEIGHT = 300
 /** 行间距 */
 const ROW_GAP = 36
-/** 完整一行（用于停稳吸附 / 外部按行滚动） */
+/** 完整一行（侧边翻页按钮按行滚动） */
 const ROW_STEP = CARD_HEIGHT + ROW_GAP
 const WALL_SLIDE_DURATION_MS = 2000
 const CARD_GRID_COLUMNS = 4
@@ -120,9 +120,6 @@ function onOverlayClose() {
 
 const AUDIO_UNLOCK_EVENTS = ['pointerdown', 'touchstart', 'keydown']
 
-let snapTimer = null
-let programmatic = false
-let programmaticTimer = null
 let wallSettleTimer = null
 let cardSettleTimer = null
 let revealFrame = null
@@ -191,10 +188,6 @@ function clampScrollTop(top) {
   return Math.min(Math.max(0, top), max)
 }
 
-function nearestRowTop(scrollTop) {
-  return clampScrollTop(Math.round(scrollTop / ROW_STEP) * ROW_STEP)
-}
-
 function scrollToTop(top, behavior = 'smooth') {
   const el = scrollerRef.value
   if (!el) return
@@ -202,29 +195,7 @@ function scrollToTop(top, behavior = 'smooth') {
   const next = clampScrollTop(top)
   if (Math.abs(el.scrollTop - next) < 1) return
 
-  programmatic = true
-  clearTimeout(programmaticTimer)
   el.scrollTo({ top: next, behavior })
-  programmaticTimer = setTimeout(() => {
-    programmatic = false
-  }, behavior === 'smooth' ? 450 : 0)
-}
-
-/** 滚动停稳后，若停在半张卡片则吸附到完整行 */
-function snapToNearestRow() {
-  const el = scrollerRef.value
-  if (!el || programmatic || activeCardId.value != null) return
-
-  const target = nearestRowTop(el.scrollTop)
-  if (Math.abs(el.scrollTop - target) < 1) return
-  scrollToTop(target)
-}
-
-function scheduleSnap() {
-  if (programmatic || activeCardId.value != null) return
-  clearTimeout(snapTimer)
-  // 等惯性滚动停稳后再吸附，避免跟手滚动打架
-  snapTimer = setTimeout(snapToNearestRow, 180)
 }
 
 function syncPagerProgress() {
@@ -240,12 +211,6 @@ function syncPagerProgress() {
 
 function onScroll() {
   syncPagerProgress()
-  scheduleSnap()
-}
-
-function onScrollEnd() {
-  clearTimeout(snapTimer)
-  snapToNearestRow()
 }
 
 /**
@@ -466,7 +431,6 @@ watch(muted, (isMuted) => {
 })
 
 onMounted(() => {
-  scrollerRef.value?.addEventListener('scrollend', onScrollEnd)
   syncPagerProgress()
   unregisterUnmuteHandler = registerUnmuteHandler?.(() => {
     if (!wallSoundStarted) playWallAudio()
@@ -480,9 +444,6 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  scrollerRef.value?.removeEventListener('scrollend', onScrollEnd)
-  clearTimeout(snapTimer)
-  clearTimeout(programmaticTimer)
   if (wallSettleTimer !== null) {
     window.clearTimeout(wallSettleTimer)
   }

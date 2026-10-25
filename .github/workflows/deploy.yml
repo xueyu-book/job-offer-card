@@ -45,9 +45,11 @@ jobs:
         run: |
           set -euo pipefail
 
+          # Asset names include a content hash. A new build always has a newer
+          # mtime, so --update re-uploads every object. Skip names already in OSS.
           ossutil sync dist/assets "oss://${OSS_BUCKET}/assets" \
             --force \
-            --update \
+            --ignore-existing \
             --cache-control "public, max-age=31536000, immutable"
 
           shopt -s nullglob
@@ -68,7 +70,7 @@ jobs:
 
           ossutil sync dist/assets "oss://${OSS_BUCKET}/assets" \
             --force \
-            --update \
+            --ignore-existing \
             --delete \
             --cache-control "public, max-age=31536000, immutable"
 
