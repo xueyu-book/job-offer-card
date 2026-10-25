@@ -2,7 +2,7 @@
   <div
     ref="cardRef"
     class="card"
-    :class="{ active, flipped }"
+    :class="{ active, flipped, 'card--overlay': isOverlay }"
     :style="dynamicStyles"
   >
     <div class="card__translater">
@@ -13,7 +13,7 @@
         :aria-expanded="active"
         @click="onCardClick"
       >
-        <div class="card__back" aria-hidden="true">
+        <div v-if="isOverlay" class="card__back" aria-hidden="true">
           <div class="card__info" :class="infoLayoutClass">
             <template v-if="showLaterHeader">
               <span class="card__info-side">By TOHC</span>
@@ -22,7 +22,7 @@
             <span v-else class="card__info-text">评分待解锁</span>
           </div>
           <div class="card__body">
-            <img class="card__bg" :src="cardBackSrc" alt="" />
+            <img class="card__bg" :src="cardBackSrc" alt="" decoding="async" draggable="false" />
           </div>
         </div>
 
@@ -43,7 +43,7 @@
             </template>
           </div>
           <div class="card__body">
-            <img class="card__bg" :src="cardSrc" :alt="`求职卡 ${serial}`" />
+            <img class="card__bg" :src="cardSrc" :alt="`求职卡 ${serial}`" decoding="async" draggable="false" />
           </div>
         </div>
       </button>
@@ -354,10 +354,13 @@ defineExpose({
   width: 95px;
   height: 152px;
   overflow: visible;
-  transform: translate3d(0, 0, 0.01px);
-  transform-style: preserve-3d;
   pointer-events: none;
   z-index: calc(var(--card-scale) * 2);
+}
+
+.card--overlay {
+  transform: translate3d(0, 0, 0.01px);
+  transform-style: preserve-3d;
 }
 
 .card.active {
@@ -368,8 +371,12 @@ defineExpose({
 .card__translater,
 .card__rotator {
   display: grid;
-  perspective: 600px;
   transform-origin: center;
+}
+
+.card--overlay .card__translater,
+.card--overlay .card__rotator {
+  perspective: 600px;
   transform-style: preserve-3d;
 }
 
@@ -381,6 +388,10 @@ defineExpose({
   height: 282px;
   overflow: visible;
   --translate-z: calc(var(--card-scale) * 80px + 0.01px);
+  transform: translate(-50%, -50%) scale(var(--card-scale-x), var(--card-scale-y));
+}
+
+.card--overlay .card__translater {
   transform: translate3d(
       calc(-50% + var(--translate-x)),
       calc(-50% + var(--translate-y)),
@@ -399,6 +410,11 @@ defineExpose({
   cursor: pointer;
   pointer-events: auto;
   overflow: visible;
+  touch-action: pan-y;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.card--overlay .card__rotator {
   transform: rotateY(var(--rotate-x));
   transform-style: preserve-3d;
 }
@@ -414,6 +430,10 @@ defineExpose({
   width: 179px;
   height: 282px;
   pointer-events: none;
+}
+
+.card--overlay .card__front,
+.card--overlay .card__back {
   transform-style: preserve-3d;
 }
 
@@ -430,6 +450,9 @@ defineExpose({
   display: flex;
   flex-direction: column;
   background: transparent;
+}
+
+.card--overlay .card__front {
   transform: translate3d(0, 0, 0.01px);
   backface-visibility: hidden;
 }

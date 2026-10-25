@@ -475,6 +475,7 @@ $card-reveal-duration: 0.75s;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
+  touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -490,7 +491,6 @@ $card-reveal-duration: 0.75s;
   gap: 21px 42px;
   justify-content: center;
   position: relative;
-  transform-style: preserve-3d;
 }
 
 .card-showcase-section__item {
@@ -498,7 +498,6 @@ $card-reveal-duration: 0.75s;
   z-index: 1;
   width: 95px;
   height: 152px;
-  transform-style: preserve-3d;
   opacity: 0;
   transform: translateX(-8px) scale(0.92);
   transition:
